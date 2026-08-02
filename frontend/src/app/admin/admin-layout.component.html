@@ -1,0 +1,61 @@
+<div class="admin-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <div class="sidebar-header">
+      <div class="sb-brand">
+        <span class="sb-icon">🎪</span>
+        @if (!sidebarCollapsed) { <span class="sb-name">EventHub</span> }
+      </div>
+      <div class="sb-user">
+        <div class="sb-avatar">{{ auth.currentUser()?.name?.charAt(0)?.toUpperCase() }}</div>
+        @if (!sidebarCollapsed) {
+          <div>
+            <p class="sb-uname">{{ auth.currentUser()?.name }}</p>
+            <p class="sb-role">Administrator</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" class="nav-item">
+          <span class="material-icons">{{ item.icon }}</span>
+          @if (!sidebarCollapsed) { <span>{{ item.label }}</span> }
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <a routerLink="/" class="nav-item">
+        <span class="material-icons">home</span>
+        @if (!sidebarCollapsed) { <span>Home</span> }
+      </a>
+      <button class="nav-item logout-btn" (click)="auth.logout()">
+        <span class="material-icons">logout</span>
+        @if (!sidebarCollapsed) { <span>Log out</span> }
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <button class="collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed">
+        <span class="material-icons">{{ sidebarCollapsed ? 'menu' : 'menu_open' }}</span>
+      </button>
+      <div class="header-search">
+        <span class="material-icons">search</span>
+        <input type="text" placeholder="Search...">
+      </div>
+      <div class="header-right">
+        <span class="admin-email">{{ auth.currentUser()?.email }}</span>
+        <div class="header-avatar">{{ auth.currentUser()?.name?.charAt(0)?.toUpperCase() }}</div>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

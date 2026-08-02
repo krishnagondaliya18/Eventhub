@@ -1,0 +1,70 @@
+<app-navbar></app-navbar>
+<div class="page">
+  <div class="container">
+    <div class="page-header">
+      <div><h1>&#11088; My Feedback</h1><p class="sub">Your reviews and ratings</p></div>
+      <button class="btn-primary" (click)="toggleForm()">
+        {{ showForm ? '&#10005; Cancel' : '+ New Feedback' }}
+      </button>
+    </div>
+
+    <div class="alert" *ngIf="message" [class.alert-success]="msgType==='success'" [class.alert-error]="msgType==='error'">{{ message }}</div>
+
+    <div class="form-card" *ngIf="showForm">
+      <h3>{{ editingId ? '&#9998; Edit Feedback' : '&#9997;&#65039; Write Feedback' }}</h3>
+      <div class="form-group">
+        <label>Subject</label>
+        <input type="text" [(ngModel)]="form.subject" placeholder="Feedback subject..." />
+      </div>
+      <div class="form-group">
+        <label>Rating</label>
+        <div class="stars-input">
+          <span *ngFor="let s of [1,2,3,4,5]" class="star" [class.active]="s <= rating" (click)="setRating(s)">&#9733;</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <textarea [(ngModel)]="form.message" rows="4" placeholder="Your feedback..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-primary" (click)="submit()" [disabled]="submitting">
+          {{ submitting ? 'Submitting...' : (editingId ? 'Update Feedback' : 'Submit Feedback') }}
+        </button>
+        <button class="btn-outline" (click)="cancelForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="center-pad"><div class="spinner"></div></div>
+
+    <div *ngIf="!loading && feedbacks.length === 0 && !showForm" class="empty-state">
+      <div style="font-size:48px">&#11088;</div>
+      <h3>No feedback yet</h3>
+      <p>Click "+ New Feedback" to add one</p>
+    </div>
+
+    <div class="feedback-list" *ngIf="!loading">
+      <div class="feedback-card" *ngFor="let f of feedbacks">
+        <div class="feedback-top">
+          <div>
+            <strong>{{ f.subject }}</strong>
+            <div class="stars-display">
+              <span class="star active" *ngFor="let s of getStars(f.rating)">&#9733;</span>
+              <span class="star"        *ngFor="let s of getEmptyStars(f.rating)">&#9733;</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-icon-edit" (click)="edit(f)">&#9998;</button>
+            <button class="btn-icon-del"  (click)="delete(f._id)">&#128465;</button>
+          </div>
+        </div>
+        <p class="fb-message">{{ f.message }}</p>
+        <div class="feedback-meta">
+          <span class="status-badge" [class.pending]="f.status==='pending'" [class.resolved]="f.status==='resolved'">
+            {{ f.status || 'Pending' }}
+          </span>
+          <span class="date">{{ f.createdAt | date:'MMM d, y' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

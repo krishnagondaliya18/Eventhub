@@ -1,0 +1,98 @@
+<div class="page-enter">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <p class="text-muted">Welcome back, {{ 'Admin' }}</p>
+  </div>
+
+  @if (loading) {
+    <div class="spinner"></div>
+  } @else {
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+      @for (card of statCards; track card.key) {
+        <div class="stat-card">
+          <div class="stat-info">
+            <p class="stat-label">{{ card.label }}</p>
+            <h2 class="stat-value">{{ getStatValue(card.key) }}</h2>
+            <span class="stat-badge"><span class="material-icons" style="font-size:14px">trending_up</span> Up to date</span>
+          </div>
+          <div class="stat-icon" [style.background]="card.bg" [style.color]="card.color">
+            <span class="material-icons">{{ card.icon }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Revenue + Category -->
+    <div class="dash-grid">
+      <div class="card p-6">
+        <h3 class="card-title">Revenue Overview</h3>
+        <div class="revenue-big">
+          <span class="rev-label">Total Revenue</span>
+          <span class="rev-val">₹{{ stats?.totalRevenue?.toLocaleString() || 0 }}</span>
+        </div>
+        <div class="rev-stats">
+          <div class="rev-stat">
+            <span class="material-icons">confirmation_number</span>
+            <div>
+              <strong>{{ stats?.totalParticipants }}</strong>
+              <p>Tickets Sold</p>
+            </div>
+          </div>
+          <div class="rev-stat">
+            <span class="material-icons">event_available</span>
+            <div>
+              <strong>{{ stats?.totalEvents }}</strong>
+              <p>Active Events</p>
+            </div>
+          </div>
+          <div class="rev-stat">
+            <span class="material-icons">feedback</span>
+            <div>
+              <strong>{{ stats?.feedbackCount }}</strong>
+              <p>Feedbacks</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-6">
+        <h3 class="card-title">Events by Category</h3>
+        <div class="cat-list">
+          @for (cat of eventsByCategory; track cat._id) {
+            <div class="cat-row">
+              <span class="cat-name">{{ cat._id }}</span>
+              <div class="cat-bar-wrap">
+                <div class="cat-bar" [style.width.%]="(cat.count / (stats?.totalEvents || 1)) * 100"></div>
+              </div>
+              <span class="cat-count">{{ cat.count }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links">
+      <h3>Quick Actions</h3>
+      <div class="quick-grid">
+        <a routerLink="/admin/users" class="quick-card">
+          <span class="material-icons">person_add</span>
+          <span>Manage Users</span>
+        </a>
+        <a routerLink="/admin/event-list" class="quick-card">
+          <span class="material-icons">add_circle</span>
+          <span>Create Event</span>
+        </a>
+        <a routerLink="/admin/participants" class="quick-card">
+          <span class="material-icons">group</span>
+          <span>View Participants</span>
+        </a>
+        <a routerLink="/admin/queries" class="quick-card">
+          <span class="material-icons">help_center</span>
+          <span>Pending Queries ({{ stats?.pendingQueries }})</span>
+        </a>
+      </div>
+    </div>
+  }
+</div>

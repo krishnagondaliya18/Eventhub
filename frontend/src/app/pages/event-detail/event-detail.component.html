@@ -1,0 +1,145 @@
+<div class="event-detail-container" *ngIf="event">
+
+  <div class="event-hero" [style.backgroundImage]="'url(' + (event?.image || 'assets/default-event.jpg') + ')'">
+    <div class="hero-overlay"><h1>{{ event?.title }}</h1></div>
+  </div>
+
+  <div class="event-body">
+    <!-- LEFT -->
+    <div class="event-info">
+      <div class="info-card">
+        <h2>About this event</h2>
+        <p>{{ event?.description }}</p>
+      </div>
+      <div class="info-card" *ngIf="event?.tags?.length">
+        <h3>Tags</h3>
+        <span class="tag" *ngFor="let tag of event.tags">{{ tag }}</span>
+      </div>
+      <div class="info-card">
+        <h3>Organizer</h3>
+        <div class="org-row">
+          <div class="avatar">{{ (event?.organizer?.name || 'A').charAt(0) }}</div>
+          <div><strong>{{ event?.organizer?.name || 'Organizer' }}</strong><p>Event Organizer</p></div>
+        </div>
+      </div>
+
+      <!-- COMMENTS SECTION -->
+      <div class="info-card comments-section">
+        <h3>&#128172; Comments</h3>
+
+        <div class="comment-input-row">
+          <input type="text" [(ngModel)]="commentText" placeholder="Write a comment..." (keyup.enter)="addComment()" />
+          <button class="btn-comment-post" (click)="addComment()">Post</button>
+        </div>
+
+        <div class="comment-list">
+          <div class="comment-item" *ngFor="let c of comments">
+            <div class="comment-avatar">{{ c.user?.name?.charAt(0) || 'U' }}</div>
+            <div class="comment-body">
+              <div class="comment-meta">
+                <strong>{{ c.user?.name }}</strong>
+                <span class="comment-time">{{ c.createdAt | date:'MMM d, h:mm a' }}</span>
+                <span class="edited-tag" *ngIf="c.edited">(edited)</span>
+              </div>
+              <div *ngIf="editingId !== c._id">
+                <p class="comment-text">{{ c.text }}</p>
+                <div class="comment-actions" *ngIf="isOwner(c)">
+                  <button (click)="startEdit(c)"><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">edit</span> Edit</button>
+                  <button (click)="deleteComment(c._id)"><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">delete</span> Delete</button>
+                </div>
+              </div>
+              <div *ngIf="editingId === c._id" class="edit-box">
+                <input type="text" [(ngModel)]="editingText" />
+                <button class="btn-save-edit" (click)="saveEdit(c)">Save</button>
+                <button class="btn-cancel-edit" (click)="cancelEdit()">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <p class="no-comments" *ngIf="comments.length === 0">No comments yet. Be the first!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="event-sidebar">
+      <div class="price-card">
+        <p class="price-label">PRICE</p>
+        <div class="price-amount">
+          <span *ngIf="event?.isFree" class="free-badge">Free</span>
+          <span *ngIf="!event?.isFree">&#8377;{{ event?.price }}</span>
+        </div>
+
+        <div class="info-row"><span class="material-icons icon-red">calendar_today</span>
+          <div><strong>Date &amp; Time</strong>
+            <p>{{ event?.date | date:'MMM dd, yyyy' }}<span *ngIf="event?.time">&nbsp;&middot;&nbsp;{{ event.time }}</span></p>
+          </div>
+        </div>
+        <div class="info-row"><span class="material-icons icon-red">location_on</span>
+          <div><strong>Location</strong><p>{{ event?.location }}</p></div>
+        </div>
+
+        <div class="map-wrap" *ngIf="event?.location">
+          <iframe [src]="mapUrl(event.location)" width="100%" height="180" style="border:0;border-radius:10px;" allowfullscreen loading="lazy"></iframe>
+        </div>
+
+        <div class="info-row" *ngIf="event?.totalTickets"><span class="material-icons icon-red">confirmation_number</span>
+          <div><strong>Availability</strong><p>{{ event?.availableTickets }} / {{ event?.totalTickets }} tickets remaining</p></div>
+        </div>
+        <div class="progress-bar" *ngIf="event?.totalTickets">
+          <div class="progress-fill" [style.width]="soldPercent + '%'"></div>
+        </div>
+        <p class="sold-text" *ngIf="event?.totalTickets">{{ soldPercent }}% sold</p>
+
+        <div class="booked-badge" *ngIf="alreadyBooked">&#10003; Booking Confirmed</div>
+
+        <button class="btn-book" *ngIf="!alreadyBooked" [disabled]="processing"
+          (click)="event?.isFree ? bookFree() : openModal()">
+          {{ processing ? 'Processing...' : (event?.isFree ? 'Register Free' : 'Book Tickets') }}
+        </button>
+
+        <a class="btn-outline-link" routerLink="/events">&#8592; Back to Events</a>
+        <a class="btn-history-link" routerLink="/bookings"><span class="material-icons" style="font-size:1rem;vertical-align:middle">confirmation_number</span> My Bookings</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeOutside($event)">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>&#127915; Book Tickets</h2>
+      <button class="close-btn" (click)="showModal=false">&#10005;</button>
+    </div>
+    <p class="modal-event-name">{{ event?.title }}</p>
+
+    <div class="section-label">Number of Tickets</div>
+    <div class="qty-row">
+      <button class="qty-btn" (click)="decQty()">&#8722;</button>
+      <span class="qty-num">{{ quantity }}</span>
+      <button class="qty-btn" (click)="incQty()">&#43;</button>
+    </div>
+
+    <div class="price-summary">
+      <div class="summary-row"><span>Price per ticket</span><span>&#8377;{{ event?.price }}</span></div>
+      <div class="summary-row"><span>Quantity</span><span>&#215; {{ quantity }}</span></div>
+      <div class="summary-row total"><span>Total Amount</span><span>&#8377;{{ totalPrice }}</span></div>
+    </div>
+
+    <div class="field-group">
+      <label>UPI ID</label>
+      <input type="text" [(ngModel)]="upiId" placeholder="9876543210@paytm  /  name@upi" />
+    </div>
+    <p class="or-text">--- or pay with app ---</p>
+    <div class="upi-apps">
+      <button class="app-btn" (click)="payWithApp('gpay')"><span class="app-icon" style="background:#4285F4">G</span>GPay</button>
+      <button class="app-btn" (click)="payWithApp('phonepe')"><span class="app-icon" style="background:#5f259f">P</span>PhonePe</button>
+      <button class="app-btn" (click)="payWithApp('paytm')"><span class="app-icon" style="background:#00b9f1">&#8377;</span>Paytm</button>
+    </div>
+    <button class="btn-pay" (click)="confirmPayment()" [disabled]="processing">
+      <span *ngIf="!processing">&#10003; Pay &#8377;{{ totalPrice }}</span>
+      <span *ngIf="processing">Processing...</span>
+    </button>
+    <button class="btn-modal-cancel" (click)="showModal=false">Cancel</button>
+  </div>
+</div>

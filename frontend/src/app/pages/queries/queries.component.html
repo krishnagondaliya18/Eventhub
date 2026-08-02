@@ -1,0 +1,70 @@
+<app-navbar></app-navbar>
+<div class="page">
+  <div class="container">
+    <div class="page-header">
+      <div><h1>&#10067; My Queries</h1><p class="sub">Ask questions to the admin</p></div>
+      <button class="btn-primary" (click)="showForm ? cancelForm() : showForm=true">
+        {{ showForm?'&#10005; Cancel':'+ New Query' }}
+      </button>
+    </div>
+
+    <div class="alert" *ngIf="message" [class.alert-success]="msgType==='success'" [class.alert-error]="msgType==='error'">{{ message }}</div>
+
+    <div class="form-card" *ngIf="showForm">
+      <h3>{{ editingId?'&#9998; Edit Query':'&#128221; Submit a Query' }}</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select [(ngModel)]="form.category">
+            <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" [(ngModel)]="form.subject" placeholder="Query subject..."/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <textarea [(ngModel)]="form.message" rows="4" placeholder="Your question..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-primary" (click)="submit()" [disabled]="submitting">
+          {{ submitting?'Submitting...':'Submit Query' }}
+        </button>
+        <button class="btn-outline" (click)="cancelForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="center-pad"><div class="spinner"></div></div>
+
+    <div *ngIf="!loading&&queries.length===0&&!showForm" class="empty-state">
+      <div style="font-size:48px">&#10067;</div>
+      <h3>No queries yet</h3>
+      <p>Click "+ New Query" to ask something</p>
+    </div>
+
+    <div class="query-list" *ngIf="!loading">
+      <div class="query-card" *ngFor="let q of queries">
+        <div class="query-top">
+          <div>
+            <span class="cat-badge">{{ q.message|slice:1:(q.message.indexOf(']')) }}</span>
+            <strong>{{ q.subject }}</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="status-badge" [class.open]="q.status==='pending'" [class.resolved]="q.status==='resolved'">
+              {{ q.status==='pending'?'Open':'Resolved' }}
+            </span>
+            <button class="btn-icon-edit" (click)="edit(q)">&#9998;</button>
+            <button class="btn-icon-del"  (click)="delete(q._id)">&#128465;</button>
+          </div>
+        </div>
+        <p class="query-msg">{{ getDisplayMsg(q.message) }}</p>
+        <div class="query-footer">
+          <span class="date">{{ q.createdAt | date:'MMM d, y' }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,34 @@
+<div class="page-enter">
+  <div class="page-top"><h1>Feedback</h1><p class="text-muted">User ratings and comments</p></div>
+  @if (loading) { <div class="spinner"></div> } @else {
+    <div class="feedback-grid">
+      @for (item of items; track item._id) {
+        <div class="feedback-card">
+          <div class="fb-header">
+            <div class="fb-user">
+              <div class="fb-avatar">{{ item.name.charAt(0).toUpperCase() }}</div>
+              <div><strong>{{ item.name }}</strong><p class="text-muted" style="font-size:12px">{{ item.email }}</p></div>
+            </div>
+            <div class="fb-stars">
+              @for (s of getStars(item.rating); track $index) {
+                <span [class.filled]="s==='filled'">{{ s==='filled' ? '★' : '☆' }}</span>
+              }
+            </div>
+          </div>
+          <p class="fb-msg">{{ item.message }}</p>
+          @if (item.event) { <p class="text-muted" style="font-size:12px;margin-bottom:8px">Event: {{ item.event.title }}</p> }
+          <div class="fb-footer">
+            <span class="text-muted" style="font-size:12px">{{ item.createdAt | date:'MMM d, y' }}</span>
+            <span class="badge" [class.badge-success]="item.status==='resolved'" [class.badge-warning]="item.status==='pending'">{{ item.status }}</span>
+          </div>
+          @if (item.status === 'pending') {
+            <button class="btn btn-sm btn-outline" style="margin-top:12px;width:100%;justify-content:center" (click)="markResolved(item._id)">Mark Resolved</button>
+          }
+        </div>
+      }
+      @if (items.length === 0) {
+        <div class="empty-state"><span style="font-size:48px">⭐</span><h3>No feedback yet</h3></div>
+      }
+    </div>
+  }
+</div>

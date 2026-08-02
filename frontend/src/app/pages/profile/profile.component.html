@@ -1,0 +1,64 @@
+<app-navbar></app-navbar>
+<div class="profile-page">
+  <div class="profile-container">
+    <div class="profile-header">
+      <div class="avatar-big">{{ user?.name?.charAt(0) || 'U' }}</div>
+      <div><h2>{{ user?.name }}</h2><span class="role-badge">{{ user?.role || 'User' }}</span></div>
+    </div>
+    <div class="alert" *ngIf="message" [class.success]="msgType==='success'" [class.error]="msgType==='error'">{{ message }}</div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>&#128100; Personal Information</h3>
+        <button class="btn-edit" (click)="editMode=!editMode" *ngIf="!editMode">&#9998; Edit</button>
+      </div>
+      <div class="info-grid" *ngIf="!editMode">
+        <div class="info-item"><label>Name</label><span>{{ user?.name||'—' }}</span></div>
+        <div class="info-item"><label>Email</label><span>{{ user?.email||'—' }}</span></div>
+        <div class="info-item"><label>Phone</label><span>{{ user?.phone||'—' }}</span></div>
+        <div class="info-item"><label>Department</label><span>{{ user?.department||'—' }}</span></div>
+        <div class="info-item"><label>Year</label><span>{{ user?.year||'—' }}</span></div>
+        <div class="info-item"><label>Role</label><span>{{ user?.role||'user' }}</span></div>
+      </div>
+      <div *ngIf="editMode">
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input type="text" [(ngModel)]="form.name"/></div>
+          <div class="form-group"><label>Phone</label><input type="text" [(ngModel)]="form.phone"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Department</label><input type="text" [(ngModel)]="form.department"/></div>
+          <div class="form-group"><label>Year</label><input type="text" [(ngModel)]="form.year"/></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-save" (click)="saveProfile()" [disabled]="saving">{{ saving?'Saving...':'Save Changes' }}</button>
+          <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>&#128274; Change Password</h3>
+        <button class="btn-edit" (click)="showPw=!showPw">{{ showPw?'Cancel':'&#128273; Change' }}</button>
+      </div>
+      <div *ngIf="showPw">
+        <div class="form-group"><label>Current Password</label><input type="password" [(ngModel)]="pwForm.currentPassword"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>New Password</label><input type="password" [(ngModel)]="pwForm.newPassword"/></div>
+          <div class="form-group"><label>Confirm Password</label><input type="password" [(ngModel)]="pwForm.confirmPassword"/></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-save" (click)="changePassword()" [disabled]="saving">{{ saving?'Updating...':'Update Password' }}</button>
+        </div>
+      </div>
+      <p class="text-muted" *ngIf="!showPw">Click "Change" to update your password</p>
+    </div>
+
+    <div class="quick-links">
+      <a routerLink="/bookings" class="quick-link">&#127915; My Bookings</a>
+      <a routerLink="/feedback" class="quick-link">&#11088; Feedback</a>
+      <a routerLink="/queries"  class="quick-link">&#10067; Queries</a>
+      <a routerLink="/events"   class="quick-link">&#127914; Browse Events</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,212 @@
+<app-navbar></app-navbar>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <h1>Pick up your<br><span class="hero-accent">wonderful plans</span></h1>
+    <p class="hero-sub">Discover thousands of events happening around you</p>
+    <div class="hero-search">
+      <div class="search-input">
+        <span class="material-icons">search</span>
+        <input type="text" placeholder="Find the event you're interested in...">
+      </div>
+      <div class="search-location">
+        <span class="material-icons">location_on</span>
+        <input type="text" value="New York, NY">
+      </div>
+      <a routerLink="/events" class="btn btn-primary btn-lg">Search</a>
+    </div>
+  </div>
+</section>
+
+<!-- NEW EVENTS -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2>New events in <span class="text-primary">NYC</span></h2>
+      <a routerLink="/events" class="btn btn-outline btn-sm">View more</a>
+    </div>
+    @if (loading) {
+      <div class="spinner"></div>
+    } @else {
+      <div class="events-grid-3">
+        @for (event of newEvents; track event._id) {
+          <a [routerLink]="['/events', event._id]" class="event-card">
+            <div class="event-img-wrap">
+              <img [src]="event.image" [alt]="event.title" loading="lazy">
+              <div class="event-overlay">
+                <span class="event-title-overlay">{{ event.title }}</span>
+              </div>
+              <span class="event-price-tag" [class.free]="event.isFree">{{ getPrice(event) }}</span>
+            </div>
+            <div class="event-info">
+              <h3>{{ event.title }}</h3>
+              <div class="event-meta">
+                <span><span class="material-icons">schedule</span>{{ event.date | date:'EEE, MMM d | hh:mm a' }}</span>
+              </div>
+              <div class="event-meta">
+                <span><span class="material-icons">location_on</span>{{ event.location }}</span>
+              </div>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="section section-grey">
+  <div class="container">
+    <h2 class="section-title">Explore by <span class="text-primary">categories</span></h2>
+    <div class="categories-grid">
+      @for (cat of categories; track cat.name) {
+        <a [routerLink]="['/events']" [queryParams]="{category: cat.name}" class="cat-card">
+          <span class="cat-icon">{{ cat.icon }}</span>
+          <span class="cat-name">{{ cat.name }}</span>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- UPCOMING 24H -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Upcoming <span class="text-primary">in 24h</span></h2>
+      <a routerLink="/events" class="btn btn-outline btn-sm">View more</a>
+    </div>
+    <div class="events-grid-2">
+      @for (event of upcomingEvents; track event._id) {
+        <a [routerLink]="['/events', event._id]" class="event-card-wide">
+          <div class="event-img-wrap-wide">
+            <img [src]="event.image" [alt]="event.title" loading="lazy">
+            <div class="event-overlay-wide">
+              <h3>{{ event.title }}</h3>
+            </div>
+          </div>
+          <div class="event-info-sm">
+            <p>{{ event.title }}</p>
+            <span class="text-primary text-sm">from ₹{{ event.price }}</span>
+            <div class="event-meta">
+              <span><span class="material-icons">schedule</span>{{ event.date | date:'EEE, MMM d | hh:mm a' }}</span>
+            </div>
+            <div class="event-meta">
+              <span><span class="material-icons">location_on</span>{{ event.location }}</span>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- HIGHLIGHT -->
+@if (highlightEvent) {
+<section class="section section-grey">
+  <div class="container">
+    <div class="section-header">
+      <h2>Highlights <span class="text-primary">this week</span></h2>
+      <a routerLink="/events" class="btn btn-outline btn-sm">View more</a>
+    </div>
+    <a [routerLink]="['/events', highlightEvent._id]" class="highlight-card">
+      <div class="highlight-info">
+        <span class="text-primary text-sm">from ₹{{ highlightEvent.price }}</span>
+        <h3>{{ highlightEvent.title }}</h3>
+        <div class="event-meta">
+          <span><span class="material-icons">schedule</span>{{ highlightEvent.date | date:'EEE, MMM d | hh:mm a' }}</span>
+        </div>
+        <div class="event-meta">
+          <span><span class="material-icons">location_on</span>{{ highlightEvent.location }}</span>
+        </div>
+        <button class="btn btn-primary mt-4">Purchase ticket</button>
+      </div>
+      <div class="highlight-img">
+        <img [src]="highlightEvent.image" [alt]="highlightEvent.title">
+        <div class="highlight-title-overlay">
+          <h2>{{ highlightEvent.title }}</h2>
+        </div>
+      </div>
+    </a>
+  </div>
+</section>
+}
+
+<!-- MORE EVENTS -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2>More events</h2>
+      <a routerLink="/events" class="btn btn-outline btn-sm">View more</a>
+    </div>
+    <div class="events-grid-3">
+      @for (event of moreEvents; track event._id) {
+        <a [routerLink]="['/events', event._id]" class="event-card">
+          <div class="event-img-wrap">
+            <img [src]="event.image" [alt]="event.title" loading="lazy">
+            <div class="event-overlay">
+              <span class="event-title-overlay">{{ event.title }}</span>
+            </div>
+            <span class="event-price-tag" [class.free]="event.isFree">{{ getPrice(event) }}</span>
+          </div>
+          <div class="event-info">
+            <h3>{{ event.title }}</h3>
+            <div class="event-meta">
+              <span class="text-primary text-sm">{{ event.isFree ? 'Free' : 'from ₹'+event.price }}</span>
+            </div>
+            <div class="event-meta">
+              <span><span class="material-icons">schedule</span>{{ event.date | date:'EEE, MMM d | hh:mm a' }}</span>
+            </div>
+            <div class="event-meta">
+              <span><span class="material-icons">location_on</span>{{ event.location }}</span>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="brand-icon">🎪</span>
+      <span class="footer-brand-name">EventHub</span>
+    </div>
+    <div class="footer-links">
+      <div>
+        <h4>Categories</h4>
+        <a routerLink="/events">Music</a>
+        <a routerLink="/events">Sports</a>
+        <a routerLink="/events">Art</a>
+        <a routerLink="/events">Business</a>
+      </div>
+      <div>
+        <h4>Resources</h4>
+        <a href="#">Help Center</a>
+        <a href="#">Partners</a>
+        <a href="#">Terms</a>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <a href="#">About</a>
+        <a routerLink="/register">Join us</a>
+      </div>
+      <div class="footer-newsletter">
+        <h4>Stay in the loop</h4>
+        <p>For product announcements and valuable insights</p>
+        <div class="newsletter-form">
+          <input type="email" placeholder="Input your email">
+          <button class="btn btn-primary btn-sm">Subscribe</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 EventHub, Inc.</span>
+    <span>Privacy · Terms · Sitemap</span>
+  </div>
+</footer>

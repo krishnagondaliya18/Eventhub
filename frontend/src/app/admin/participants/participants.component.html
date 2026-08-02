@@ -1,0 +1,28 @@
+<div class="page-enter">
+  <div class="page-top"><h1>Participants</h1><p class="text-muted">All event registrations</p></div>
+  <div class="card">
+    @if (loading) { <div class="spinner"></div> } @else {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>User</th><th>Email</th><th>Event</th><th>Registered</th><th>Paid</th><th>Status</th></tr></thead>
+          <tbody>
+            @for (p of participants; track p._id; let i = $index) {
+              <tr>
+                <td>{{ i+1 }}</td>
+                <td><div class="user-cell"><div class="mini-av">{{ p.user.name.charAt(0).toUpperCase() }}</div>{{ p.user.name }}</div></td>
+                <td>{{ p.user.email }}</td>
+                <td>{{ p.event.title }}</td>
+                <td>{{ p.registeredAt | date:'MMM d, y' }}</td>
+                <td><span class="text-primary" style="font-weight:700">{{ p.totalPaid === 0 ? 'Free' : '₹'+p.totalPaid }}</span></td>
+                <td><span class="badge badge-success">{{ p.status }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (participants.length === 0) {
+          <div class="empty-state"><span style="font-size:48px">👥</span><h3>No participants yet</h3></div>
+        }
+      </div>
+    }
+  </div>
+</div>

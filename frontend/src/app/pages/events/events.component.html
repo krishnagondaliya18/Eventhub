@@ -1,0 +1,88 @@
+<app-navbar></app-navbar>
+
+<div class="events-page">
+  <div class="events-header">
+    <div class="container">
+      <div class="header-row">
+        <div>
+          <h1>Events</h1>
+          <p class="text-muted">{{ total }} events found</p>
+        </div>
+        <div class="header-filters">
+          <button class="filter-btn" [class.active]="filters.status==='active'" (click)="filters.status='active'; applyFilters()">ALL</button>
+          <button class="filter-btn" [class.active]="filters.isFree==='false'" (click)="filters.isFree='false'; applyFilters()">PAID</button>
+          <button class="filter-btn" [class.active]="filters.isFree==='true'" (click)="filters.isFree='true'; applyFilters()">FREE</button>
+          <button class="filter-btn" [class.active]="filters.isOnline==='true'" (click)="filters.isOnline='true'; applyFilters()">ONLINE</button>
+          <button class="filter-btn" [class.active]="filters.isOnline==='false'" (click)="filters.isOnline='false'; applyFilters()">OFFLINE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container events-body">
+    <div class="sidebar">
+      <div class="filter-card">
+        <h3>Search</h3>
+        <input class="form-control" type="text" placeholder="Search events..." [(ngModel)]="filters.search" (input)="applyFilters()">
+      </div>
+      <div class="filter-card">
+        <h3>Category</h3>
+        <div class="cat-list">
+          <button class="cat-item" [class.active]="filters.category===''" (click)="filters.category=''; applyFilters()">All Categories</button>
+          @for (cat of categories; track cat) {
+            <button class="cat-item" [class.active]="filters.category===cat" (click)="filters.category=cat; applyFilters()">{{ cat }}</button>
+          }
+        </div>
+      </div>
+      <button class="btn btn-outline w-full" (click)="clearFilters()">Clear Filters</button>
+    </div>
+
+    <div class="events-main">
+      @if (loading) {
+        <div class="spinner"></div>
+      } @else if (events.length === 0) {
+        <div class="empty-state">
+          <span style="font-size:48px">🎪</span>
+          <h3>No events found</h3>
+          <p class="text-muted">Try adjusting your filters</p>
+          <button class="btn btn-primary mt-4" (click)="clearFilters()">Clear Filters</button>
+        </div>
+      } @else {
+        <div class="events-grid">
+          @for (event of events; track event._id) {
+            <a [routerLink]="['/events', event._id]" class="event-card">
+              <div class="event-img-wrap">
+                <img [src]="event.image" [alt]="event.title" loading="lazy">
+                <div class="event-overlay"></div>
+                <span class="event-price-tag" [class.free]="event.isFree">{{ getPrice(event) }}</span>
+                <span class="event-cat-tag">{{ event.category }}</span>
+                @if (event.isOnline) {
+                  <span class="event-online-tag">Online</span>
+                }
+              </div>
+              <div class="event-info">
+                <h3>{{ event.title }}</h3>
+                <p class="event-desc">{{ event.description | slice:0:80 }}...</p>
+                <div class="event-meta"><span class="material-icons">schedule</span>{{ event.date | date:'MMM d, y' }}</div>
+                <div class="event-meta"><span class="material-icons">location_on</span>{{ event.location }}</div>
+                <div class="event-footer">
+                  <span class="event-tickets">{{ event.availableTickets }} tickets left</span>
+                  <span class="event-price" [class.free]="event.isFree">{{ getPrice(event) }}</span>
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1) {
+          <div class="pagination">
+            <button class="btn btn-outline btn-sm" [disabled]="page === 1" (click)="prevPage()">← Prev</button>
+            <span class="page-info">Page {{ page }} of {{ totalPages }}</span>
+            <button class="btn btn-outline btn-sm" [disabled]="page === totalPages" (click)="nextPage()">Next →</button>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+.page-top { margin-bottom: 24px; }
+.page-top h1 { font-size: 26px; }
+.feedback-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.feedback-card { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.fb-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.fb-user { display: flex; align-items: center; gap: 10px; }
+.fb-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.fb-stars { font-size: 18px; color: #ddd; }
+.fb-stars .filled { color: #f4a261; }
+.fb-msg { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
+.fb-footer { display: flex; justify-content: space-between; align-items: center; }
+.empty-state { text-align: center; padding: 60px 20px; grid-column: 1/-1; }
+.empty-state h3 { margin-top: 12px; font-size: 18px; color: var(--text-muted); }
+@media (max-width: 1024px) { .feedback-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .feedback-grid { grid-template-columns: 1fr; } }

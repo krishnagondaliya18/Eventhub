@@ -1,0 +1,36 @@
+<div class="page-enter">
+  <div class="page-top">
+    <div><h1>Queries</h1><p class="text-muted">{{ pending }} pending queries</p></div>
+  </div>
+  <div class="card">
+    @if (loading) { <div class="spinner"></div> } @else {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Message</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            @for (q of queries; track q._id; let i = $index) {
+              <tr>
+                <td>{{ i+1 }}</td>
+                <td><strong>{{ q.name }}</strong></td>
+                <td>{{ q.email }}</td>
+                <td class="msg-cell">{{ q.message | slice:0:80 }}{{ q.message.length > 80 ? '...' : '' }}</td>
+                <td>{{ q.createdAt | date:'MMM d, y' }}</td>
+                <td><span class="badge" [class.badge-success]="q.status==='resolved'" [class.badge-warning]="q.status==='pending'">{{ q.status }}</span></td>
+                <td>
+                  @if (q.status === 'pending') {
+                    <button class="btn btn-sm btn-primary" (click)="markResolved(q._id)">Resolve</button>
+                  } @else {
+                    <span class="text-success" style="font-size:13px">Done</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (queries.length === 0) {
+          <div class="empty-state"><span style="font-size:48px">💬</span><h3>No queries yet</h3></div>
+        }
+      </div>
+    }
+  </div>
+</div>

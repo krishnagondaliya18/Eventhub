@@ -1,0 +1,49 @@
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <span>🎪</span> <span class="brand-name">EventHub</span>
+    </div>
+    <div class="auth-visual">
+      <h2>Discover amazing events near you</h2>
+      <p>Join thousands of people connecting through experiences.</p>
+      <div class="event-previews">
+        <div class="preview-card">🎵 Musical Fusion Festival</div>
+        <div class="preview-card">🏃 Urban Marathon</div>
+        <div class="preview-card">🎨 Oil Painting Odyssey</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-box">
+      <h1>Welcome back</h1>
+      <p class="auth-sub">Sign in to your EventHub account</p>
+
+      @if (error) {
+        <div class="alert alert-error">{{ error }}</div>
+      }
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input class="form-control" type="email" placeholder="you@example.com" [(ngModel)]="email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input class="form-control" type="password" placeholder="••••••••" [(ngModel)]="password" (keyup.enter)="login()">
+      </div>
+
+      <button class="btn btn-primary btn-lg w-full" (click)="login()" [disabled]="loading">
+        {{ loading ? 'Signing in...' : 'Sign In' }}
+      </button>
+
+      <div class="hint-box">
+        <strong>Demo Admin:</strong> admin&#64;eventhub.com / admin123
+        <br><em>Run <code>/api/seed</code> first to create demo data</em>
+      </div>
+
+      <p class="auth-switch">
+        Don't have an account? <a routerLink="/register">Create one →</a>
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <a routerLink="/" class="nav-brand">
+      <span class="brand-icon">🎪</span>
+      <span class="brand-name">EventHub</span>
+    </a>
+
+    <div class="nav-links" [class.open]="menuOpen">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a>
+      <a routerLink="/events" routerLinkActive="active">Events</a>
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active">Admin</a>
+      }
+    </div>
+
+    <div class="nav-actions">
+      @if (auth.isLoggedIn()) {
+        <div class="user-dropdown" [class.open]="dropdownOpen">
+          <div class="user-info" (click)="dropdownOpen = !dropdownOpen">
+            <div class="user-avatar">{{ auth.currentUser()?.name?.charAt(0)?.toUpperCase() }}</div>
+            <span class="user-name">{{ auth.currentUser()?.name }}</span>
+            <span class="arrow">&#9660;</span>
+          </div>
+          <div class="dropdown-menu" *ngIf="dropdownOpen">
+            <a routerLink="/profile"  (click)="dropdownOpen=false">👤 Profile</a>
+            <a routerLink="/bookings" (click)="dropdownOpen=false">🎟️ My Bookings</a>
+            <a routerLink="/feedback" (click)="dropdownOpen=false">⭐ Feedback</a>
+            <a routerLink="/queries"  (click)="dropdownOpen=false">❓ Queries</a>
+            <div class="drop-divider"></div>
+            <button (click)="logout()">🚪 Logout</button>
+          </div>
+        </div>
+      } @else {
+        <a routerLink="/login"    class="btn btn-outline btn-sm">Log In</a>
+        <a routerLink="/register" class="btn btn-primary btn-sm">Sign Up</a>
+      }
+      <button class="hamburger" (click)="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>

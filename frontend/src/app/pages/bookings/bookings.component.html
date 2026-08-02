@@ -1,0 +1,153 @@
+<app-navbar></app-navbar>
+
+<div class="page">
+  <div class="container">
+
+    <div class="page-header">
+      <div><h1>&#128196; My Bookings</h1><p class="sub">Your complete ticket booking history</p></div>
+      <a routerLink="/events" class="btn-primary">&#43; Book New Event</a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="tabs">
+      <button [class.active]="activeFilter==='all'"       (click)="activeFilter='all'">All ({{ bookings.length }})</button>
+      <button [class.active]="activeFilter==='confirmed'" (click)="activeFilter='confirmed'">Confirmed</button>
+      <button [class.active]="activeFilter==='cancelled'" (click)="activeFilter='cancelled'">Cancelled</button>
+    </div>
+
+    <div class="alert" *ngIf="message"
+      [class.alert-success]="msgType==='success'"
+      [class.alert-error]="msgType==='error'">{{ message }}</div>
+
+    <div *ngIf="loading" class="center-pad"><div class="spinner"></div></div>
+
+    <div *ngIf="!loading && filtered.length === 0" class="empty-state">
+      <div style="font-size:48px">&#127915;</div>
+      <h3>No bookings found</h3>
+      <a routerLink="/events" class="btn-primary" style="margin-top:16px;display:inline-block;">Browse Events</a>
+    </div>
+
+    <div class="booking-list" *ngIf="!loading">
+      <div class="booking-card" *ngFor="let b of filtered" [class.is-cancelled]="b.status==='cancelled'">
+
+        <div class="card-img">
+          <img [src]="b.event?.image || 'assets/default-event.jpg'" [alt]="b.event?.title" />
+          <span class="status-pill"
+            [class.pill-confirmed]="b.status==='confirmed'"
+            [class.pill-cancelled]="b.status==='cancelled'">
+            {{ b.status | titlecase }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <h3>{{ b.event?.title }}</h3>
+          <div class="meta">
+            <span><span class="material-icons meta-icon">calendar_today</span> {{ b.event?.date | date:'MMM d, yyyy' }}</span>
+            <span><span class="material-icons meta-icon">location_on</span> {{ b.event?.location }}</span>
+          </div>
+          <div class="chips">
+            <div class="chip">
+              <span class="chip-lbl">Booking ID</span>
+              <span class="chip-val">{{ b.bookingId }}</span>
+            </div>
+            <div class="chip">
+              <span class="chip-lbl">Tickets</span>
+              <span class="chip-val">{{ b.quantity }}</span>
+            </div>
+            <div class="chip">
+              <span class="chip-lbl">Total Paid</span>
+              <span class="chip-val red">
+                <span *ngIf="b.totalAmount === 0">Free</span>
+                <span *ngIf="b.totalAmount > 0">&#8377;{{ b.totalAmount }}</span>
+              </span>
+            </div>
+          </div>
+          <p class="booked-on">Booked on {{ b.createdAt | date:'MMM d, y, h:mm a' }}</p>
+          <p class="cancelled-on" *ngIf="b.cancelledAt">Cancelled on {{ b.cancelledAt | date:'MMM d, y' }}</p>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-download" (click)="downloadTicket(b)"><span class="material-icons" style="font-size:1rem;vertical-align:middle">picture_as_pdf</span> Download Ticket</button>
+          <button class="btn-edit-qty"
+            *ngIf="b.status === 'confirmed'"
+            (click)="openEdit(b)">
+            <span class="material-icons" style="font-size:1rem;vertical-align:middle">edit</span> Edit Tickets
+          </button>
+          <button class="btn-cancel-bk"
+            *ngIf="b.status === 'confirmed'"
+            (click)="cancel(b._id)">
+            <span class="material-icons" style="font-size:1rem;vertical-align:middle">cancel</span> Cancel
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ EDIT TICKETS MODAL ═══ -->
+<div class="modal-overlay" *ngIf="editingBooking" (click)="closeEditOutside($event)">
+  <div class="edit-modal">
+
+    <div class="modal-head">
+      <h2>&#9998; Edit Tickets</h2>
+      <button class="close-btn" (click)="closeEdit()">&#10005;</button>
+    </div>
+
+    <p class="modal-event-name">{{ editingBooking?.event?.title }}</p>
+
+    <!-- Current vs New -->
+    <div class="current-info">
+      <div class="curr-item">
+        <span class="curr-label">Current Tickets</span>
+        <span class="curr-val">{{ editingBooking?.quantity }}</span>
+      </div>
+      <div class="curr-arrow">&#8594;</div>
+      <div class="curr-item">
+        <span class="curr-label">New Tickets</span>
+        <span class="curr-val new">{{ editQty }}</span>
+      </div>
+    </div>
+
+    <!-- Quantity Control -->
+    <div class="qty-section">
+      <button class="qty-btn dec" (click)="decEditQty()" [disabled]="editQty <= 1">&#8722;</button>
+      <div class="qty-display">
+        <span class="qty-num">{{ editQty }}</span>
+        <span class="qty-label">tickets</span>
+      </div>
+      <button class="qty-btn inc" (click)="incEditQty()" [disabled]="editQty >= 10">&#43;</button>
+    </div>
+
+    <!-- Price Summary -->
+    <div class="price-summary">
+      <div class="summary-row">
+        <span>Price per ticket</span>
+        <span>&#8377;{{ editingBooking?.event?.price }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Quantity</span>
+        <span>&#215; {{ editQty }}</span>
+      </div>
+      <div class="summary-row total">
+        <span>New Total</span>
+        <span>&#8377;{{ editTotal }}</span>
+      </div>
+      <div class="summary-row diff" *ngIf="editQty !== editingBooking?.quantity">
+        <span>{{ editQty > editingBooking?.quantity ? 'Additional charge' : 'Refund amount' }}</span>
+        <span [class.red]="editQty > editingBooking?.quantity" [class.green]="editQty < editingBooking?.quantity">
+          {{ editQty > editingBooking?.quantity ? '+' : '-' }}
+          &#8377;{{ editDiff }}
+        </span>
+      </div>
+    </div>
+
+    <button class="btn-save" (click)="saveEdit()" [disabled]="updating || editQty === editingBooking?.quantity">
+      <span *ngIf="!updating">&#10003; Update Booking</span>
+      <span *ngIf="updating">&#8987; Updating...</span>
+    </button>
+    <button class="btn-modal-cancel" (click)="closeEdit()">Cancel</button>
+
+  </div>
+</div>
