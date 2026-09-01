@@ -121,6 +121,56 @@
 .method-text p{margin:2px 0 0;font-size:0.75rem;color:#94a3b8}
 .method-option-card.selected .method-arrow{color:#f87171}
 
+/* UPI Hybrid Sub-Container */
+.method-option-wrapper{border-radius:14px;transition:all 0.2s}
+.upi-hybrid-box{background:#111524;border:1.5px solid rgba(248,113,113,0.3);border-radius:14px;padding:16px;margin-top:8px;animation:chkFadeIn 0.25s ease}
+
+/* Sub-tabs */
+.upi-sub-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#181e33;padding:4px;border-radius:10px;margin-bottom:16px}
+.upi-sub-tab{background:transparent;border:none;color:#94a3b8;padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s}
+.upi-sub-tab .material-icons{font-size:1rem}
+.upi-sub-tab:hover{color:#fff;background:rgba(255,255,255,0.04)}
+.upi-sub-tab.active{background:#f87171;color:#fff;box-shadow:0 3px 10px rgba(248,113,113,0.3)}
+
+/* Tab 1: Clean QR Layout */
+.clean-qr-layout{display:flex;align-items:center;gap:16px}
+.qr-code-white-card{background:#ffffff;padding:8px;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.35);flex-shrink:0}
+.real-qr-img{width:115px;height:115px;display:block;border-radius:4px}
+.qr-info-column{display:flex;flex-direction:column;gap:3px;text-align:left}
+.verified-merchant-tag{display:inline-flex;align-items:center;gap:4px;font-size:0.7rem;font-weight:800;color:#22c55e;background:rgba(34,197,94,0.12);padding:2px 8px;border-radius:12px;width:fit-content;margin-bottom:2px}
+.verified-merchant-tag .material-icons{font-size:0.85rem}
+.payee-title{margin:0;font-size:0.95rem;font-weight:800;color:#f8fafc}
+.payee-vpa-mono{margin:0;font-size:0.8rem;color:#60a5fa;font-family:monospace;font-weight:700}
+.qr-payable-badge{font-size:0.8rem;color:#cbd5e1;margin-top:2px}
+.qr-payable-badge strong{color:#f87171;font-size:0.92rem}
+.qr-instruction-note{font-size:0.7rem;color:#94a3b8;margin-top:4px;line-height:1.3}
+
+/* Tab 2: UPI ID Form */
+.upi-id-form{display:flex;flex-direction:column;gap:8px;text-align:left}
+.upi-form-label{font-size:0.76rem;font-weight:700;color:#94a3b8}
+.upi-input-action-row{display:flex;gap:8px}
+.upi-text-input{flex:1;padding:10px 12px;background:#1e243b;border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;font-size:0.86rem;color:#fff;font-weight:600;outline:none;font-family:monospace;transition:border-color 0.2s}
+.upi-text-input:focus{border-color:#f87171}
+.btn-verify-upi{padding:10px 16px;background:rgba(248,113,113,0.15);border:1.5px solid #f87171;color:#f87171;border-radius:10px;font-size:0.8rem;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s;white-space:nowrap}
+.btn-verify-upi:hover:not(:disabled){background:#f87171;color:#fff}
+.btn-verify-upi:disabled{opacity:0.5;cursor:not-allowed}
+.chk-spin-sm{width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block}
+
+.upi-validation-msg{font-size:0.74rem;font-weight:700;margin:0;display:flex;align-items:center;gap:4px}
+.upi-validation-msg.success{color:#22c55e}
+.upi-validation-msg.error{color:#ef4444}
+.upi-validation-msg .material-icons{font-size:0.88rem}
+
+.quick-handles-list{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}
+.quick-handle-hint{font-size:0.7rem;color:#64748b;font-weight:600}
+.handle-chip{background:#1e243b;border:1px solid rgba(255,255,255,0.08);color:#94a3b8;font-size:0.7rem;font-family:monospace;padding:2px 7px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.handle-chip:hover{background:#334155;color:#fff;border-color:rgba(255,255,255,0.2)}
+
+@media (max-width: 540px){
+  .clean-qr-layout{flex-direction:column;text-align:center}
+  .qr-info-column{text-align:center;align-items:center}
+}
+
 .chk-summary-card{background:#161b2e;padding:22px}
 .chk-event-banner{margin-bottom:16px}
 .chk-img-wrap{position:relative;border-radius:12px;overflow:hidden;height:120px;margin-bottom:12px}

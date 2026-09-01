@@ -181,18 +181,80 @@
             </div>
             <div class="chk-card-body">
               <div class="payment-method-list">
-                <!-- UPI -->
-                <div class="method-option-card" [class.selected]="selectedMethod === 'upi'" (click)="selectedMethod = 'upi'">
-                  <div class="method-left">
-                    <div class="method-icon-box">
-                      <span class="material-icons">account_balance_wallet</span>
+                <!-- UPI OPTION & HYBRID INTERACTION -->
+                <div class="method-option-wrapper" [class.selected]="selectedMethod === 'upi'">
+                  <div class="method-option-card" [class.selected]="selectedMethod === 'upi'" (click)="selectedMethod = 'upi'">
+                    <div class="method-left">
+                      <div class="method-icon-box">
+                        <span class="material-icons">account_balance_wallet</span>
+                      </div>
+                      <div class="method-text">
+                        <strong>UPI (GPay, PhonePe, Paytm, QR)</strong>
+                        <p>Scan Real QR or Pay via Verified UPI ID</p>
+                      </div>
                     </div>
-                    <div class="method-text">
-                      <strong>UPI (GPay, PhonePe, Paytm)</strong>
-                      <p>Pay via UPI ID, QR code or UPI app</p>
+                    <span class="material-icons method-arrow">{{ selectedMethod === 'upi' ? 'expand_more' : 'chevron_right' }}</span>
+                  </div>
+
+                  <!-- UPI SUB-MODES CONTAINER -->
+                  <div class="upi-hybrid-box" *ngIf="selectedMethod === 'upi'">
+                    <!-- SUB TABS -->
+                    <div class="upi-sub-tabs">
+                      <button type="button" class="upi-sub-tab" [class.active]="upiTab === 'qr'" (click)="upiTab = 'qr'">
+                        <span class="material-icons">qr_code_scanner</span> Scan QR Code
+                      </button>
+                      <button type="button" class="upi-sub-tab" [class.active]="upiTab === 'id'" (click)="upiTab = 'id'">
+                        <span class="material-icons">alternate_email</span> Pay with UPI ID
+                      </button>
+                    </div>
+
+                    <!-- TAB 1: REAL SCANNABLE QR CODE -->
+                    <div class="upi-tab-content" *ngIf="upiTab === 'qr'">
+                      <div class="clean-qr-layout">
+                        <div class="qr-code-white-card">
+                          <img [src]="realUpiQrCodeUrl" alt="Real UPI QR" class="real-qr-img" />
+                        </div>
+                        <div class="qr-info-column">
+                          <div class="verified-merchant-tag">
+                            <span class="material-icons">verified</span> Verified Merchant
+                          </div>
+                          <h4 class="payee-title">{{ MERCHANT_NAME }}</h4>
+                          <p class="payee-vpa-mono">{{ MERCHANT_UPI_ID }}</p>
+                          <div class="qr-payable-badge">
+                            Payable: <strong>&#8377;{{ finalTotal | number }}</strong>
+                          </div>
+                          <span class="qr-instruction-note">Scan with Google Pay, PhonePe, Paytm, BHIM or any UPI App</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- TAB 2: PAY WITH UPI ID -->
+                    <div class="upi-tab-content" *ngIf="upiTab === 'id'">
+                      <div class="upi-id-form">
+                        <label class="upi-form-label">Enter your Virtual Payment Address (UPI ID)</label>
+                        <div class="upi-input-action-row">
+                          <input type="text" [(ngModel)]="userUpiId" (input)="onUpiInputChange()" placeholder="e.g. yourname@okaxis" class="upi-text-input" />
+                          <button type="button" class="btn-verify-upi" (click)="verifyUpiId()" [disabled]="!userUpiId.trim() || upiVerifying">
+                            <span *ngIf="upiVerifying" class="chk-spin-sm"></span>
+                            {{ upiVerifying ? 'Verifying' : (upiVerified ? 'Verified ✓' : 'Verify') }}
+                          </button>
+                        </div>
+                        <p class="upi-validation-msg success" *ngIf="upiVerified">
+                          <span class="material-icons">check_circle</span> Valid UPI ID: {{ userUpiId }}
+                        </p>
+                        <p class="upi-validation-msg error" *ngIf="upiVerifyMsg && !upiVerified">
+                          <span class="material-icons">error_outline</span> {{ upiVerifyMsg }}
+                        </p>
+                        <div class="quick-handles-list">
+                          <span class="quick-handle-hint">Common Handles:</span>
+                          <span class="handle-chip" (click)="setUpiHandle('okaxis')">&#64;okaxis</span>
+                          <span class="handle-chip" (click)="setUpiHandle('oksbi')">&#64;oksbi</span>
+                          <span class="handle-chip" (click)="setUpiHandle('paytm')">&#64;paytm</span>
+                          <span class="handle-chip" (click)="setUpiHandle('ybl')">&#64;ybl</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <span class="material-icons method-arrow">chevron_right</span>
                 </div>
 
                 <!-- CARDS -->
@@ -294,9 +356,10 @@
             </div>
 
             <!-- PAY ACTION BUTTON -->
-            <button class="chk-btn-pay" (click)="payWithRazorpay()" [disabled]="processing">
+            <button class="chk-btn-pay" (click)="handlePaymentAction()" [disabled]="processing">
               <span *ngIf="!processing">
-                <span class="material-icons">lock</span> Pay &#8377;{{ finalTotal | number }}
+                <span class="material-icons">{{ selectedMethod === 'upi' && upiTab === 'qr' ? 'check_circle' : 'lock' }}</span>
+                {{ selectedMethod === 'upi' && upiTab === 'qr' ? ('I Have Paid &bull; &#8377;' + (finalTotal | number)) : (selectedMethod === 'upi' && upiTab === 'id' ? ('Pay via UPI &bull; &#8377;' + (finalTotal | number)) : ('Pay &#8377;' + (finalTotal | number) + ' via ' + getSelectedMethodName())) }}
               </span>
               <span *ngIf="processing" class="chk-loading-text">
                 <span class="chk-spin"></span> {{ processingMsg }}
