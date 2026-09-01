@@ -120,7 +120,50 @@
 .method-text strong{display:block;font-size:0.88rem;color:#f8fafc;font-weight:700}
 .method-text p{margin:2px 0 0;font-size:0.75rem;color:#94a3b8}
 .method-arrow{color:#64748b;font-size:1.3rem}
-.method-option-card.selected .method-arrow{color:#f87171}
+/* Real Merchant UPI QR Container */
+.method-option-wrapper{border-radius:14px;transition:all 0.2s}
+.real-upi-qr-card{background:#13182b;border:1.5px solid rgba(248,113,113,0.35);border-radius:14px;padding:18px;margin-top:8px;animation:chkFadeIn 0.25s ease;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+
+.upi-qr-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1px solid #22c55e;color:#22c55e;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:800;margin-bottom:14px}
+.upi-qr-badge .material-icons{font-size:0.95rem}
+.upi-qr-badge strong{color:#fff}
+
+/* QR Frame */
+.upi-qr-frame{background:#ffffff;padding:12px;border-radius:14px;display:inline-block;margin:0 auto 12px;box-shadow:0 6px 20px rgba(0,0,0,0.35)}
+.upi-qr-img{width:180px;height:180px;display:block;border-radius:6px}
+.upi-scan-instruction{font-size:0.72rem;color:#475569;font-weight:700;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px}
+.upi-scan-instruction .material-icons{font-size:0.85rem;color:#0f172a}
+
+/* Payee info grid */
+.upi-payee-info-grid{background:#1c233c;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px;text-align:left}
+.upi-info-cell{display:flex;justify-content:space-between;align-items:center}
+.info-lbl{font-size:0.75rem;color:#94a3b8;font-weight:600}
+.info-val{font-size:0.86rem;color:#fff;font-weight:700}
+.upi-copy-row{display:flex;align-items:center;gap:6px}
+.upi-id-text{color:#60a5fa !important;font-family:monospace;letter-spacing:0.3px}
+
+.btn-copy-upi{background:rgba(248,113,113,0.15);border:1px solid #f87171;color:#f87171;font-size:0.7rem;font-weight:800;padding:3px 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:all 0.2s}
+.btn-copy-upi:hover{background:#f87171;color:#fff}
+.btn-copy-upi .material-icons{font-size:0.8rem}
+
+.upi-amount-cell{border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;margin-top:2px}
+.amount-highlight{color:#f87171 !important;font-size:1.15rem !important;font-weight:900 !important}
+
+/* Mobile Link */
+.btn-mobile-upi-link{display:flex;align-items:center;justify-content:center;gap:6px;background:#1e293b;border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;padding:9px;border-radius:10px;font-size:0.8rem;font-weight:700;text-decoration:none;margin-bottom:10px;transition:all 0.2s}
+.btn-mobile-upi-link:hover{background:#334155;color:#fff;border-color:rgba(255,255,255,0.2)}
+.btn-mobile-upi-link .material-icons{font-size:1rem;color:#f87171}
+
+/* Instant Confirm Button */
+.btn-instant-confirm-upi{width:100%;padding:12px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:#fff;font-size:0.92rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(34,197,94,0.35);transition:all 0.2s;margin-bottom:12px}
+.btn-instant-confirm-upi:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(34,197,94,0.45)}
+.btn-instant-confirm-upi:disabled{opacity:0.6;cursor:not-allowed}
+.btn-instant-confirm-upi .material-icons{font-size:1.1rem}
+
+/* Supported Apps */
+.upi-apps-icons-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:5px}
+.supported-lbl{font-size:0.7rem;color:#64748b;font-weight:600}
+.app-tag{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:6px}
 
 .chk-summary-card{background:#161b2e;padding:22px}
 .chk-event-banner{margin-bottom:16px}
