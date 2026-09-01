@@ -49,7 +49,7 @@ router.post('/create-order', protect, async (req, res) => {
     res.json({
       success: true,
       order,
-      keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder_key',
+      keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_TSk0Vle1oG7U1A',
       amount: finalAmount,
       currency: 'INR'
     });
@@ -78,7 +78,7 @@ router.post('/verify-payment', protect, async (req, res) => {
     }
 
     // Verify HMAC SHA256 signature
-    const secret = process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret_key';
+    const secret = process.env.RAZORPAY_KEY_SECRET || 'ZDSmneQYfMU6jOyhVVjpSxjc';
     const generatedSignature = crypto
       .createHmac('sha256', secret)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
