@@ -216,10 +216,13 @@
                         </div>
                         <div class="qr-info-column">
                           <div class="verified-merchant-tag">
-                            <span class="material-icons">verified</span> Verified Merchant
+                            <span class="material-icons">verified</span> Verified Payee
                           </div>
                           <h4 class="payee-title">{{ MERCHANT_NAME }}</h4>
                           <p class="payee-vpa-mono">{{ MERCHANT_UPI_ID }}</p>
+                          <div class="merchant-bank-detail">
+                            <span class="material-icons">account_balance</span> {{ MERCHANT_BANK }} &bull; A/C: {{ MERCHANT_ACC }}
+                          </div>
                           <div class="qr-payable-badge">
                             Payable: <strong>&#8377;{{ finalTotal | number }}</strong>
                           </div>
@@ -228,20 +231,19 @@
                       </div>
                     </div>
 
-                    <!-- TAB 2: PAY WITH UPI ID -->
+                    <!-- TAB 2: PAY WITH UPI ID / COLLECT REQUEST -->
                     <div class="upi-tab-content" *ngIf="upiTab === 'id'">
-                      <div class="upi-id-form">
-                        <label class="upi-form-label">Enter your Virtual Payment Address (UPI ID)</label>
+                      <!-- VIEW A: ENTER UPI ID -->
+                      <div class="upi-id-form" *ngIf="!requestSent">
+                        <label class="upi-form-label">Enter your UPI ID to receive payment request</label>
                         <div class="upi-input-action-row">
                           <input type="text" [(ngModel)]="userUpiId" (input)="onUpiInputChange()" placeholder="e.g. yourname@okaxis" class="upi-text-input" />
-                          <button type="button" class="btn-verify-upi" (click)="verifyUpiId()" [disabled]="!userUpiId.trim() || upiVerifying">
+                          <button type="button" class="btn-verify-upi" (click)="sendUpiCollectRequest()" [disabled]="!userUpiId.trim() || upiVerifying">
                             <span *ngIf="upiVerifying" class="chk-spin-sm"></span>
-                            {{ upiVerifying ? 'Verifying' : (upiVerified ? 'Verified ✓' : 'Verify') }}
+                            <span class="material-icons" *ngIf="!upiVerifying">send</span>
+                            {{ upiVerifying ? 'Sending...' : 'Send Request' }}
                           </button>
                         </div>
-                        <p class="upi-validation-msg success" *ngIf="upiVerified">
-                          <span class="material-icons">check_circle</span> Valid UPI ID: {{ userUpiId }}
-                        </p>
                         <p class="upi-validation-msg error" *ngIf="upiVerifyMsg && !upiVerified">
                           <span class="material-icons">error_outline</span> {{ upiVerifyMsg }}
                         </p>
@@ -251,6 +253,37 @@
                           <span class="handle-chip" (click)="setUpiHandle('oksbi')">&#64;oksbi</span>
                           <span class="handle-chip" (click)="setUpiHandle('paytm')">&#64;paytm</span>
                           <span class="handle-chip" (click)="setUpiHandle('ybl')">&#64;ybl</span>
+                          <span class="handle-chip" (click)="setUpiHandle('barodampay')">&#64;barodampay</span>
+                        </div>
+                      </div>
+
+                      <!-- VIEW B: PAYMENT REQUEST SENT / WAITING FOR APPROVAL -->
+                      <div class="upi-waiting-box" *ngIf="requestSent">
+                        <div class="pulse-beacon-wrap">
+                          <div class="pulse-beacon-core">
+                            <span class="material-icons">notifications_active</span>
+                          </div>
+                        </div>
+                        <h4 class="request-sent-title">Payment Request Sent!</h4>
+                        <p class="request-sent-vpa">Request of <strong class="text-danger">&#8377;{{ finalTotal | number }}</strong> sent to <span>{{ userUpiId }}</span></p>
+                        <p class="request-sent-instruction">
+                          Open Google Pay, PhonePe, Paytm, or your UPI app and approve the request.
+                        </p>
+                        <div class="request-timer-badge">
+                          <span class="material-icons">timer</span> Expires in: <strong>{{ countdownFormatted }}</strong>
+                        </div>
+                        <div class="request-actions-row">
+                          <button type="button" class="btn-request-confirm" (click)="confirmUpiPayment()" [disabled]="processing">
+                            <span *ngIf="!processing" class="btn-inner">
+                              <span class="material-icons">check_circle</span> I Have Approved in My App
+                            </span>
+                            <span *ngIf="processing" class="chk-loading-text">
+                              <span class="chk-spin"></span> {{ processingMsg }}
+                            </span>
+                          </button>
+                          <button type="button" class="btn-request-cancel" (click)="cancelUpiRequest()">
+                            Change UPI ID
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -358,8 +391,8 @@
             <!-- PAY ACTION BUTTON -->
             <button class="chk-btn-pay" (click)="handlePaymentAction()" [disabled]="processing">
               <span *ngIf="!processing">
-                <span class="material-icons">{{ selectedMethod === 'upi' && upiTab === 'qr' ? 'check_circle' : 'lock' }}</span>
-                {{ selectedMethod === 'upi' && upiTab === 'qr' ? ('I Have Paid &bull; &#8377;' + (finalTotal | number)) : (selectedMethod === 'upi' && upiTab === 'id' ? ('Pay via UPI &bull; &#8377;' + (finalTotal | number)) : ('Pay &#8377;' + (finalTotal | number) + ' via ' + getSelectedMethodName())) }}
+                <span class="material-icons">{{ (selectedMethod === 'upi' && upiTab === 'qr') || (selectedMethod === 'upi' && upiTab === 'id' && requestSent) ? 'check_circle' : 'lock' }}</span>
+                {{ selectedMethod === 'upi' && upiTab === 'qr' ? ('I Have Paid &bull; &#8377;' + (finalTotal | number)) : (selectedMethod === 'upi' && upiTab === 'id' && !requestSent ? ('Send Request &bull; &#8377;' + (finalTotal | number)) : (selectedMethod === 'upi' && upiTab === 'id' && requestSent ? ('Confirm Payment &bull; &#8377;' + (finalTotal | number)) : ('Pay &#8377;' + (finalTotal | number) + ' via ' + getSelectedMethodName()))) }}
               </span>
               <span *ngIf="processing" class="chk-loading-text">
                 <span class="chk-spin"></span> {{ processingMsg }}

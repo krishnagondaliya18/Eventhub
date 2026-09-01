@@ -39,11 +39,20 @@ export class EventDetailComponent implements OnInit {
   // Real Merchant Details & UPI Sub-options
   readonly MERCHANT_UPI_ID = 'gondaliyakishan839@okaxis';
   readonly MERCHANT_NAME   = 'Krishna Gondaliya';
+  readonly MERCHANT_BANK   = 'Bank of Baroda';
+  readonly MERCHANT_ACC    = '58890100025463';
+
   upiTab: 'qr' | 'id'      = 'qr';
   userUpiId: string        = '';
   upiVerified: boolean     = false;
   upiVerifying: boolean    = false;
   upiVerifyMsg: string     = '';
+
+  // UPI Collect Request State
+  requestSent: boolean     = false;
+  countdownSeconds: number = 300;
+  countdownFormatted       = '05:00';
+  timerInterval: any       = null;
 
   comments:    any[]  = [];
   commentText  = '';
@@ -136,6 +145,53 @@ export class EventDetailComponent implements OnInit {
     this.onUpiInputChange();
   }
 
+  startUpiRequestTimer(): void {
+    this.stopUpiRequestTimer();
+    this.countdownSeconds = 300;
+    this.updateCountdownFormatted();
+    this.timerInterval = setInterval(() => {
+      if (this.countdownSeconds > 0) {
+        this.countdownSeconds--;
+        this.updateCountdownFormatted();
+      } else {
+        this.stopUpiRequestTimer();
+      }
+    }, 1000);
+  }
+
+  stopUpiRequestTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+  }
+
+  updateCountdownFormatted(): void {
+    const mins = Math.floor(this.countdownSeconds / 60);
+    const secs = this.countdownSeconds % 60;
+    this.countdownFormatted = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  sendUpiCollectRequest(): void {
+    const vpa = (this.userUpiId || '').trim();
+    if (!vpa || !vpa.includes('@')) {
+      this.upiVerifyMsg = 'Please enter a valid UPI ID (e.g. yourname@okaxis)';
+      return;
+    }
+    this.upiVerifying = true;
+    setTimeout(() => {
+      this.upiVerifying = false;
+      this.upiVerified = true;
+      this.requestSent = true;
+      this.startUpiRequestTimer();
+    }, 500);
+  }
+
+  cancelUpiRequest(): void {
+    this.stopUpiRequestTimer();
+    this.requestSent = false;
+  }
+
   verifyUpiId(): boolean {
     const vpa = (this.userUpiId || '').trim();
     if (!vpa) {
@@ -160,13 +216,14 @@ export class EventDetailComponent implements OnInit {
 
   confirmUpiPayment(): void {
     if (!this.event) return;
+    this.stopUpiRequestTimer();
     this.processing = true;
     this.processingMsg = 'Confirming UPI Payment & Generating Tickets...';
 
     this.http.post<any>('/api/bookings', {
       eventId:       this.event._id,
       quantity:      this.quantity,
-      paymentMethod: `UPI (Paid to ${this.MERCHANT_UPI_ID})`,
+      paymentMethod: this.requestSent ? `UPI Collect (${this.userUpiId})` : `UPI QR (${this.MERCHANT_UPI_ID})`,
       upiId:         this.userUpiId || this.MERCHANT_UPI_ID,
       totalAmount:   this.finalTotal,
       paymentStatus: 'paid'
@@ -203,10 +260,11 @@ export class EventDetailComponent implements OnInit {
       if (this.upiTab === 'qr') {
         this.confirmUpiPayment();
       } else {
-        if (this.userUpiId && !this.upiVerified) {
-          this.verifyUpiId();
+        if (!this.requestSent) {
+          this.sendUpiCollectRequest();
+        } else {
+          this.confirmUpiPayment();
         }
-        this.payWithRazorpay();
       }
     } else {
       this.payWithRazorpay();
@@ -234,6 +292,8 @@ export class EventDetailComponent implements OnInit {
     this.userUpiId = '';
     this.upiVerified = false;
     this.upiVerifyMsg = '';
+    this.requestSent = false;
+    this.stopUpiRequestTimer();
   }
 
   closeOutside(e: MouseEvent): void {
