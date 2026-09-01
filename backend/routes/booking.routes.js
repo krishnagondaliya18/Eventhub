@@ -1,13 +1,140 @@
-const express = require('express');
-const router  = express.Router();
-const Booking = require('../models/Booking');
-const Event   = require('../models/Event');
+const express  = require('express');
+const router   = express.Router();
+const Booking  = require('../models/Booking');
+const Event    = require('../models/Event');
 const { protect, adminOnly } = require('../middleware/auth');
+const Razorpay = require('razorpay');
+const crypto   = require('crypto');
 
-// POST /api/bookings — book tickets (multiple quantity)
+const getRazorpayInstance = () => {
+  return new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_TSk0Vle1oG7U1A',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || 'ZDSmneQYfMU6jOyhVVjpSxjc'
+  });
+};
+
+// POST /api/bookings/create-order — Create Razorpay Order
+router.post('/create-order', protect, async (req, res) => {
+  try {
+    const { eventId, quantity } = req.body;
+    const qty = Math.max(1, Math.min(10, parseInt(quantity) || 1));
+
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    if (event.availableTickets < qty) {
+      return res.status(400).json({ success: false, message: `Only ${event.availableTickets} tickets available` });
+    }
+
+    if (event.isFree || event.price === 0) {
+      return res.status(400).json({ success: false, message: 'This event is free. Use free registration.' });
+    }
+
+    const totalAmount = event.price * qty;
+    const finalAmount = totalAmount + Math.max(50, Math.round(totalAmount * 0.025)) + Math.round(totalAmount * 0.085);
+    const options = {
+      amount: Math.round(finalAmount * 100),
+      currency: 'INR',
+      receipt: `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      notes: {
+        eventId: event._id.toString(),
+        userId: req.user._id.toString(),
+        eventTitle: event.title,
+        quantity: qty
+      }
+    };
+
+    const razorpay = getRazorpayInstance();
+    const order = await razorpay.orders.create(options);
+
+    res.json({
+      success: true,
+      order,
+      keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder_key',
+      amount: finalAmount,
+      currency: 'INR'
+    });
+  } catch (err) {
+    console.error('Razorpay Create Order Error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Error creating Razorpay order' });
+  }
+});
+
+// POST /api/bookings/verify-payment — Verify Razorpay signature & Confirm Booking
+router.post('/verify-payment', protect, async (req, res) => {
+  try {
+    const {
+      eventId,
+      quantity,
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature
+    } = req.body;
+
+    const qty = Math.max(1, Math.min(10, parseInt(quantity) || 1));
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    if (event.availableTickets < qty) {
+      return res.status(400).json({ success: false, message: `Only ${event.availableTickets} tickets available` });
+    }
+
+    // Verify HMAC SHA256 signature
+    const secret = process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret_key';
+    const generatedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Payment verification failed: Invalid signature' });
+    }
+
+    const totalAmount = event.price * qty;
+
+    const booking = await Booking.create({
+      user: req.user._id,
+      event: event._id,
+      quantity: qty,
+      totalAmount,
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
+      paymentStatus: 'paid',
+      status: 'confirmed'
+    });
+
+    // Reduce available tickets and track revenue
+    event.availableTickets -= qty;
+    event.revenue = (event.revenue || 0) + totalAmount;
+    if (!event.participants.includes(req.user._id)) {
+      event.participants.push(req.user._id);
+    }
+    await event.save();
+
+    const populated = await Booking.findById(booking._id)
+      .populate('event', 'title date location price image category isFree')
+      .populate('user',  'name email');
+
+    res.status(201).json({ success: true, message: 'Payment verified and booking confirmed', booking: populated });
+  } catch (err) {
+    console.error('Payment Verification Error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Payment verification failed' });
+  }
+});
+
+// POST /api/bookings — Universal Booking / Multi-Option Payment
 router.post('/', protect, async (req, res) => {
   try {
-    const { eventId, quantity, upiId } = req.body;
+    const {
+      eventId,
+      quantity,
+      upiId,
+      paymentMethod = 'Online Payment',
+      paymentDetails = {},
+      razorpayOrderId = '',
+      razorpayPaymentId = '',
+      razorpaySignature = ''
+    } = req.body;
+
     const qty = Math.max(1, Math.min(10, parseInt(quantity) || 1));
 
     const event = await Event.findById(eventId);
@@ -23,7 +150,14 @@ router.post('/', protect, async (req, res) => {
       event: event._id,
       quantity: qty,
       totalAmount,
-      upiId: upiId || ''
+      upiId: upiId || paymentDetails?.upiId || '',
+      paymentMethod: event.isFree ? 'Free Registration' : paymentMethod,
+      paymentDetails: paymentDetails || {},
+      razorpayOrderId: razorpayOrderId || '',
+      razorpayPaymentId: razorpayPaymentId || '',
+      razorpaySignature: razorpaySignature || '',
+      paymentStatus: event.isFree ? 'free' : 'paid',
+      status: 'confirmed'
     });
 
     // Reduce available tickets and track revenue
@@ -36,10 +170,11 @@ router.post('/', protect, async (req, res) => {
 
     const populated = await Booking.findById(booking._id)
       .populate('event', 'title date location price image category isFree')
-      .populate('user',  'name email');
+      .populate('user',  'name email phone');
 
-    res.status(201).json({ success: true, booking: populated });
+    res.status(201).json({ success: true, message: 'Booking confirmed successfully!', booking: populated });
   } catch (err) {
+    console.error('Booking creation error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 });

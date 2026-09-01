@@ -151,7 +151,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5}
     <div><div class="lbl">Location</div><div class="val">${ev?.location||'—'}</div></div>
     <div><div class="lbl">Tickets</div><div class="val">${b.quantity} ticket(s)</div></div>
     <div><div class="lbl">Status</div><div class="val"><span class="status-chip">${(b.status||'').toUpperCase()}</span></div></div>
-    <div><div class="lbl">Payment</div><div class="val">${b.upiId?'UPI — '+b.upiId:(b.totalAmount===0?'Free Registration':'UPI Payment')}</div></div>
+    <div><div class="lbl">Payment Method</div><div class="val">${b.paymentMethod ? b.paymentMethod : (b.razorpayPaymentId ? ('Razorpay (' + b.razorpayPaymentId + ')') : (b.totalAmount === 0 ? 'Free Registration' : 'Online Payment'))}</div></div>
     <div><div class="lbl">Category</div><div class="val">${ev?.category||'—'}</div></div>
   </div>
   <hr class="dashed">

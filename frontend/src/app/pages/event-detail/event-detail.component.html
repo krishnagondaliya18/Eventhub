@@ -104,42 +104,260 @@
   </div>
 </div>
 
-<!-- BOOKING MODAL -->
-<div class="modal-overlay" *ngIf="showModal" (click)="closeOutside($event)">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h2>&#127915; Book Tickets</h2>
-      <button class="close-btn" (click)="showModal=false">&#10005;</button>
-    </div>
-    <p class="modal-event-name">{{ event?.title }}</p>
+<!-- DARK LUXURY SECURE CHECKOUT & CONFIRMATION MODAL -->
+<div class="modal-overlay dark-checkout-overlay" *ngIf="showModal" (click)="closeOutside($event)">
+  <div class="checkout-container-shell" (click)="$event.stopPropagation()">
 
-    <div class="section-label">Number of Tickets</div>
-    <div class="qty-row">
-      <button class="qty-btn" (click)="decQty()">&#8722;</button>
-      <span class="qty-num">{{ quantity }}</span>
-      <button class="qty-btn" (click)="incQty()">&#43;</button>
+    <!-- SCREEN 1: SECURE CHECKOUT -->
+    <div class="checkout-screen" *ngIf="checkoutStep === 'payment'">
+      <!-- TOP NAV -->
+      <div class="chk-top-bar">
+        <div class="chk-brand">
+          <span class="chk-brand-icon">🎪</span>
+          <span class="chk-brand-name">EventHub</span>
+        </div>
+        <div class="chk-top-right">
+          <span class="chk-secure-tag"><span class="material-icons">lock</span> SECURE CHECKOUT</span>
+          <button class="chk-close-btn" (click)="showModal=false" [disabled]="processing">&#10005;</button>
+        </div>
+      </div>
+
+      <!-- STEPPER -->
+      <div class="chk-stepper">
+        <div class="step-item step-completed">
+          <span class="step-num">1</span>
+          <span class="step-text">Tickets</span>
+        </div>
+        <div class="step-line active"></div>
+        <div class="step-item step-active">
+          <span class="step-pill">
+            <span class="step-num-pill">2</span> Payment
+          </span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item step-idle">
+          <span class="step-num">3</span>
+          <span class="step-text">Confirmation</span>
+        </div>
+      </div>
+
+      <!-- 2-COLUMN CHECKOUT BODY -->
+      <div class="chk-body-grid">
+        <!-- LEFT COLUMN: FORMS -->
+        <div class="chk-left-col">
+          <!-- CARD 1: ATTENDEE INFORMATION -->
+          <div class="chk-dark-card">
+            <div class="chk-card-head">
+              <span class="material-icons card-head-icon">person</span>
+              <h3>Attendee Information</h3>
+            </div>
+            <div class="chk-card-body">
+              <div class="chk-form-row">
+                <div class="chk-field-col">
+                  <label>First Name</label>
+                  <input type="text" [(ngModel)]="firstName" placeholder="Alex" class="chk-dark-input" />
+                </div>
+                <div class="chk-field-col">
+                  <label>Last Name</label>
+                  <input type="text" [(ngModel)]="lastName" placeholder="Rivera" class="chk-dark-input" />
+                </div>
+              </div>
+              <div class="chk-form-group">
+                <label>Email Address</label>
+                <input type="email" [(ngModel)]="email" placeholder="alex.rivera@example.com" class="chk-dark-input" />
+                <span class="chk-field-caption">Tickets will be sent to this email.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 2: PAYMENT METHOD -->
+          <div class="chk-dark-card">
+            <div class="chk-card-head chk-card-head-split">
+              <div class="head-left">
+                <span class="material-icons card-head-icon">credit_card</span>
+                <h3>Payment Method</h3>
+              </div>
+              <span class="powered-by-rzp">POWERED BY <strong>Razorpay</strong></span>
+            </div>
+            <div class="chk-card-body">
+              <div class="payment-method-list">
+                <!-- UPI -->
+                <div class="method-option-card" [class.selected]="selectedMethod === 'upi'" (click)="selectedMethod = 'upi'">
+                  <div class="method-left">
+                    <div class="method-icon-box">
+                      <span class="material-icons">account_balance_wallet</span>
+                    </div>
+                    <div class="method-text">
+                      <strong>UPI (GPay, PhonePe, Paytm)</strong>
+                      <p>Instant payment via any UPI app</p>
+                    </div>
+                  </div>
+                  <span class="material-icons method-arrow">chevron_right</span>
+                </div>
+
+                <!-- CARDS -->
+                <div class="method-option-card" [class.selected]="selectedMethod === 'card'" (click)="selectedMethod = 'card'">
+                  <div class="method-left">
+                    <div class="method-icon-box">
+                      <span class="material-icons">payment</span>
+                    </div>
+                    <div class="method-text">
+                      <strong>Cards (Visa, Mastercard, RuPay)</strong>
+                      <p>Credit and Debit cards supported</p>
+                    </div>
+                  </div>
+                  <span class="material-icons method-arrow">chevron_right</span>
+                </div>
+
+                <!-- NETBANKING -->
+                <div class="method-option-card" [class.selected]="selectedMethod === 'netbanking'" (click)="selectedMethod = 'netbanking'">
+                  <div class="method-left">
+                    <div class="method-icon-box">
+                      <span class="material-icons">account_balance</span>
+                    </div>
+                    <div class="method-text">
+                      <strong>Netbanking (All Indian Banks)</strong>
+                      <p>Secure login to your bank account</p>
+                    </div>
+                  </div>
+                  <span class="material-icons method-arrow">chevron_right</span>
+                </div>
+
+                <!-- WALLETS -->
+                <div class="method-option-card" [class.selected]="selectedMethod === 'wallet'" (click)="selectedMethod = 'wallet'">
+                  <div class="method-left">
+                    <div class="method-icon-box">
+                      <span class="material-icons">wallet</span>
+                    </div>
+                    <div class="method-text">
+                      <strong>Wallets</strong>
+                      <p>Mobikwik, Freecharge and more</p>
+                    </div>
+                  </div>
+                  <span class="material-icons method-arrow">chevron_right</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: ORDER SUMMARY -->
+        <div class="chk-right-col">
+          <div class="chk-dark-card chk-summary-card">
+            <!-- EVENT THUMBNAIL & TITLE -->
+            <div class="chk-event-banner">
+              <div class="chk-img-wrap">
+                <img [src]="event?.image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&auto=format&fit=crop&q=80'" [alt]="event?.title" />
+                <span class="chk-cat-pill">{{ event?.category || 'Tech' }}</span>
+              </div>
+              <div class="chk-event-info">
+                <h3 class="chk-event-title">{{ event?.title }}</h3>
+                <p class="chk-event-meta">
+                  <span class="material-icons">calendar_today</span>
+                  {{ event?.date | date:'MMM d, y' }} &bull; {{ event?.location || 'Main Venue' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- TICKET QUANTITY PICKER -->
+            <div class="chk-qty-row">
+              <span>Quantity:</span>
+              <div class="chk-qty-selector">
+                <button (click)="decQty()" [disabled]="quantity <= 1 || processing">&#8722;</button>
+                <span>{{ quantity }}</span>
+                <button (click)="incQty()" [disabled]="processing">&#43;</button>
+              </div>
+            </div>
+
+            <!-- PRICE BREAKDOWN -->
+            <div class="chk-breakdown">
+              <div class="chk-breakdown-row">
+                <span>General Admission (x{{ quantity }})</span>
+                <span>&#8377;{{ ticketSubtotal | number }}</span>
+              </div>
+              <div class="chk-breakdown-row" *ngIf="processingFee > 0">
+                <span>Processing Fee</span>
+                <span>&#8377;{{ processingFee | number }}</span>
+              </div>
+              <div class="chk-breakdown-row" *ngIf="taxes > 0">
+                <span>Taxes (8.5%)</span>
+                <span>&#8377;{{ taxes | number }}</span>
+              </div>
+            </div>
+
+            <div class="chk-divider"></div>
+
+            <!-- TOTAL ROW -->
+            <div class="chk-total-row">
+              <span class="chk-total-lbl">Total</span>
+              <span class="chk-total-val">&#8377;{{ finalTotal | number }}</span>
+            </div>
+
+            <!-- PAY ACTION BUTTON -->
+            <button class="chk-btn-pay" (click)="payWithRazorpay()" [disabled]="processing">
+              <span *ngIf="!processing">
+                <span class="material-icons">lock</span> Pay &#8377;{{ finalTotal | number }} via {{ getSelectedMethodName() }}
+              </span>
+              <span *ngIf="processing" class="chk-loading-text">
+                <span class="chk-spin"></span> {{ processingMsg }}
+              </span>
+            </button>
+
+            <p class="chk-encryption-footer">
+              <span class="material-icons">verified_user</span> Secured by 256-bit encryption
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="price-summary">
-      <div class="summary-row"><span>Price per ticket</span><span>&#8377;{{ event?.price }}</span></div>
-      <div class="summary-row"><span>Quantity</span><span>&#215; {{ quantity }}</span></div>
-      <div class="summary-row total"><span>Total Amount</span><span>&#8377;{{ totalPrice }}</span></div>
+    <!-- SCREEN 2: PAYMENT CONFIRMATION -->
+    <div class="confirmation-screen" *ngIf="checkoutStep === 'confirmation'">
+      <div class="confirmation-card">
+        <!-- SUCCESS GLOW ICON -->
+        <div class="conf-success-icon-wrap">
+          <div class="conf-circle">
+            <span class="material-icons">check</span>
+          </div>
+        </div>
+
+        <h2 class="conf-title">Payment Successful</h2>
+        <p class="conf-subtitle">Your booking is confirmed. See you there!</p>
+
+        <!-- ORDER SUMMARY BOX -->
+        <div class="conf-summary-box">
+          <span class="conf-summary-heading">ORDER SUMMARY</span>
+          <div class="conf-summary-row">
+            <span>{{ event?.title }} (x{{ quantity }})</span>
+            <span>&#8377;{{ ticketSubtotal | number }}</span>
+          </div>
+          <div class="conf-summary-row" *ngIf="processingFee > 0">
+            <span>Processing Fee</span>
+            <span>&#8377;{{ processingFee | number }}</span>
+          </div>
+          <div class="conf-summary-divider"></div>
+          <div class="conf-summary-total">
+            <span>Total</span>
+            <span class="conf-total-num">&#8377;{{ finalTotal | number }}</span>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="conf-actions">
+          <button class="conf-btn-download" (click)="downloadConfirmedTicket()">
+            <span class="material-icons">download</span> Download Ticket
+          </button>
+          <button class="conf-btn-back" (click)="goToEvents()">
+            Back to Events
+          </button>
+        </div>
+
+        <!-- TRANSACTION ID -->
+        <p class="conf-trx-id">
+          Transaction ID: #{{ confirmedBooking?.bookingId || 'TRX-9482-771' }}
+        </p>
+      </div>
     </div>
 
-    <div class="field-group">
-      <label>UPI ID</label>
-      <input type="text" [(ngModel)]="upiId" placeholder="9876543210@paytm  /  name@upi" />
-    </div>
-    <p class="or-text">--- or pay with app ---</p>
-    <div class="upi-apps">
-      <button class="app-btn" (click)="payWithApp('gpay')"><span class="app-icon" style="background:#4285F4">G</span>GPay</button>
-      <button class="app-btn" (click)="payWithApp('phonepe')"><span class="app-icon" style="background:#5f259f">P</span>PhonePe</button>
-      <button class="app-btn" (click)="payWithApp('paytm')"><span class="app-icon" style="background:#00b9f1">&#8377;</span>Paytm</button>
-    </div>
-    <button class="btn-pay" (click)="confirmPayment()" [disabled]="processing">
-      <span *ngIf="!processing">&#10003; Pay &#8377;{{ totalPrice }}</span>
-      <span *ngIf="processing">Processing...</span>
-    </button>
-    <button class="btn-modal-cancel" (click)="showModal=false">Cancel</button>
   </div>
 </div>

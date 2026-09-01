@@ -1,7 +1,7 @@
 {
   "/api": {
-    "target": "https://eventhub-a6bm.onrender.com",
+    "target": "http://localhost:5000",
     "secure": false,
-    "changeDetection": true
+    "changeOrigin": true
   }
 }
