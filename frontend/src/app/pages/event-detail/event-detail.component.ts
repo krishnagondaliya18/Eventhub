@@ -36,11 +36,6 @@ export class EventDetailComponent implements OnInit {
   // Payment Options
   selectedMethod: 'upi' | 'card' | 'netbanking' | 'wallet' = 'upi';
 
-  // Real Merchant UPI Details
-  readonly MERCHANT_UPI_ID = 'gondaliyakishan839@okaxis';
-  readonly MERCHANT_NAME   = 'Krishna Gondaliya';
-  copiedUpi = false;
-
   comments:    any[]  = [];
   commentText  = '';
   editingId:   string | null = null;
@@ -108,67 +103,6 @@ export class EventDetailComponent implements OnInit {
   }
 
   get totalPrice(): number { return this.finalTotal; }
-
-  // ✅ Real NPCI UPI URI with user's actual merchant details
-  get upiPaymentUri(): string {
-    const note = encodeURIComponent(`EventHub ${this.event?.title || 'Ticket'} (x${this.quantity})`);
-    const name = encodeURIComponent(this.MERCHANT_NAME);
-    return `upi://pay?pa=${this.MERCHANT_UPI_ID}&pn=${name}&am=${this.finalTotal}&cu=INR&tn=${note}`;
-  }
-
-  // ✅ High-resolution Real QR Code generator
-  get realUpiQrCodeUrl(): string {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(this.upiPaymentUri)}`;
-  }
-
-  copyUpiId(): void {
-    navigator.clipboard.writeText(this.MERCHANT_UPI_ID).then(() => {
-      this.copiedUpi = true;
-      setTimeout(() => { this.copiedUpi = false; }, 2500);
-    }).catch(() => {
-      this.copiedUpi = true;
-      setTimeout(() => { this.copiedUpi = false; }, 2500);
-    });
-  }
-
-  confirmUpiPayment(): void {
-    if (!this.event) return;
-    this.processing = true;
-    this.processingMsg = 'Confirming UPI Payment & Generating Tickets...';
-
-    this.http.post<any>('/api/bookings', {
-      eventId:       this.event._id,
-      quantity:      this.quantity,
-      paymentMethod: `UPI (Paid to ${this.MERCHANT_UPI_ID})`,
-      totalAmount:   this.finalTotal,
-      paymentStatus: 'paid'
-    }).subscribe({
-      next: (res: any) => {
-        this.processing = false;
-        this.confirmedBooking = res.booking || {
-          bookingId:   'TRX-' + Math.floor(1000 + Math.random() * 9000),
-          event:       this.event,
-          quantity:    this.quantity,
-          totalAmount: this.finalTotal,
-          createdAt:   new Date()
-        };
-        this.checkoutStep = 'confirmation';
-        this.alreadyBooked = true;
-      },
-      error: (err: any) => {
-        this.processing = false;
-        if (err?.status === 401 || err?.error?.message === 'Token invalid' || err?.error?.message === 'Not authorized, no token') {
-          alert('તમારું લૉગિન સેશન સમાપ્ત થઈ ગયું છે (Login Session Expired). કૃપા કરીને ફરી લૉગિન કરો.');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          this.showModal = false;
-          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-          return;
-        }
-        alert('Booking Error: ' + (err?.error?.message || 'Could not verify booking. Please try again.'));
-      }
-    });
-  }
 
   mapUrl(location: string): SafeResourceUrl {
     const url = `https://maps.google.com/maps?q=${encodeURIComponent(location || '')}&output=embed`;
@@ -287,9 +221,9 @@ export class EventDetailComponent implements OnInit {
                 only_selected_method: {
                   name: this.getMethodTitle(this.selectedMethod),
                   instruments: [
-                    {
-                      method: chosenInstrument
-                    }
+                    chosenInstrument === 'upi'
+                      ? { method: 'upi', flows: ['qr', 'collect', 'intent'] }
+                      : { method: chosenInstrument }
                   ]
                 }
               },

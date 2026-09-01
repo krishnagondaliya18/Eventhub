@@ -181,32 +181,18 @@
             </div>
             <div class="chk-card-body">
               <div class="payment-method-list">
-                <!-- UPI OPTION & SLEEK QR CODE DISPLAY -->
-                <div class="method-option-wrapper" [class.selected]="selectedMethod === 'upi'">
-                  <div class="method-option-card" [class.selected]="selectedMethod === 'upi'" (click)="selectedMethod = 'upi'">
-                    <div class="method-left">
-                      <div class="method-icon-box">
-                        <span class="material-icons">account_balance_wallet</span>
-                      </div>
-                      <div class="method-text">
-                        <strong>UPI (GPay, PhonePe, Paytm, QR)</strong>
-                        <p>Scan to pay via any UPI App</p>
-                      </div>
+                <!-- UPI -->
+                <div class="method-option-card" [class.selected]="selectedMethod === 'upi'" (click)="selectedMethod = 'upi'">
+                  <div class="method-left">
+                    <div class="method-icon-box">
+                      <span class="material-icons">account_balance_wallet</span>
                     </div>
-                    <span class="material-icons method-arrow">{{ selectedMethod === 'upi' ? 'expand_more' : 'chevron_right' }}</span>
-                  </div>
-
-                  <!-- CLEAN PROFESSIONAL QR BOX (BookMyShow Style) -->
-                  <div class="clean-qr-box" *ngIf="selectedMethod === 'upi'">
-                    <div class="qr-white-card">
-                      <img [src]="realUpiQrCodeUrl" alt="UPI QR Code" class="qr-matrix-img" />
-                    </div>
-                    <div class="qr-details-text">
-                      <p class="qr-merchant-name">{{ MERCHANT_NAME }}</p>
-                      <p class="qr-vpa-id">{{ MERCHANT_UPI_ID }}</p>
-                      <span class="qr-scan-subtext">Scan with Google Pay, PhonePe, Paytm, BHIM or any UPI App</span>
+                    <div class="method-text">
+                      <strong>UPI (GPay, PhonePe, Paytm)</strong>
+                      <p>Pay via UPI ID, QR code or UPI app</p>
                     </div>
                   </div>
+                  <span class="material-icons method-arrow">chevron_right</span>
                 </div>
 
                 <!-- CARDS -->
@@ -308,7 +294,7 @@
             </div>
 
             <!-- PAY ACTION BUTTON -->
-            <button class="chk-btn-pay" (click)="selectedMethod === 'upi' ? confirmUpiPayment() : payWithRazorpay()" [disabled]="processing">
+            <button class="chk-btn-pay" (click)="payWithRazorpay()" [disabled]="processing">
               <span *ngIf="!processing">
                 <span class="material-icons">lock</span> Pay &#8377;{{ finalTotal | number }}
               </span>
