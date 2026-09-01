@@ -110,6 +110,12 @@ export class EventDetailComponent implements OnInit {
   }
 
   openModal(): void {
+    const token = localStorage.getItem('token');
+    if (!token || token === 'null' || token === 'undefined') {
+      alert('ટિકિટ બુક કરવા માટે કૃપા કરીને પહેલા લૉગિન કરો (Please login to book tickets).');
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
     this.showModal = true;
     this.checkoutStep = 'payment';
     this.quantity = 1;
@@ -290,7 +296,18 @@ export class EventDetailComponent implements OnInit {
           this.processFallbackDirectPayment();
         }
       },
-      error: () => { this.processFallbackDirectPayment(); }
+      error: (err: any) => {
+        this.processing = false;
+        if (err?.status === 401 || err?.error?.message === 'Token invalid' || err?.error?.message === 'Not authorized, no token') {
+          alert('તમારું લૉગિન સેશન સમાપ્ત થઈ ગયું છે (Login Session Expired). કૃપા કરીને ફરી લૉગિન કરો.');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          this.showModal = false;
+          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+          return;
+        }
+        this.processFallbackDirectPayment();
+      }
     });
   }
 
@@ -316,7 +333,15 @@ export class EventDetailComponent implements OnInit {
       },
       error: (err: any) => {
         this.processing = false;
-        alert('Payment failed: ' + (err?.error?.message || 'Try again.'));
+        if (err?.status === 401 || err?.error?.message === 'Token invalid' || err?.error?.message === 'Not authorized, no token') {
+          alert('તમારું લૉગિન સેશન સમાપ્ત થઈ ગયું છે (Login Session Expired). કૃપા કરીને ફરી લૉગિન કરો.');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          this.showModal = false;
+          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+          return;
+        }
+        alert('Booking Error: ' + (err?.error?.message || 'Please check your connection and try again.'));
       }
     });
   }
