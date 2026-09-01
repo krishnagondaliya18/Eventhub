@@ -181,7 +181,7 @@
             </div>
             <div class="chk-card-body">
               <div class="payment-method-list">
-                <!-- UPI OPTION & REAL QR CODE DISPLAY -->
+                <!-- UPI OPTION & SLEEK QR CODE DISPLAY -->
                 <div class="method-option-wrapper" [class.selected]="selectedMethod === 'upi'">
                   <div class="method-option-card" [class.selected]="selectedMethod === 'upi'" (click)="selectedMethod = 'upi'">
                     <div class="method-left">
@@ -190,72 +190,21 @@
                       </div>
                       <div class="method-text">
                         <strong>UPI (GPay, PhonePe, Paytm, QR)</strong>
-                        <p>Scan Real QR or Pay to {{ MERCHANT_UPI_ID }}</p>
+                        <p>Scan to pay via any UPI App</p>
                       </div>
                     </div>
                     <span class="material-icons method-arrow">{{ selectedMethod === 'upi' ? 'expand_more' : 'chevron_right' }}</span>
                   </div>
 
-                  <!-- REAL MERCHANT UPI QR CODE CONTAINER -->
-                  <div class="real-upi-qr-card" *ngIf="selectedMethod === 'upi'">
-                    <div class="upi-qr-badge">
-                      <span class="material-icons">verified</span> Verified Merchant: <strong>{{ MERCHANT_NAME }}</strong>
+                  <!-- CLEAN PROFESSIONAL QR BOX (BookMyShow Style) -->
+                  <div class="clean-qr-box" *ngIf="selectedMethod === 'upi'">
+                    <div class="qr-white-card">
+                      <img [src]="realUpiQrCodeUrl" alt="UPI QR Code" class="qr-matrix-img" />
                     </div>
-
-                    <!-- HIGH QUALITY REAL QR CODE -->
-                    <div class="upi-qr-frame">
-                      <img [src]="realUpiQrCodeUrl" alt="Real UPI QR Code" class="upi-qr-img" />
-                      <div class="upi-scan-instruction">
-                        <span class="material-icons">photo_camera</span> Scan with GPay, PhonePe, Paytm or any UPI App
-                      </div>
-                    </div>
-
-                    <!-- PAYEE DETAILS & COPY -->
-                    <div class="upi-payee-info-grid">
-                      <div class="upi-info-cell">
-                        <span class="info-lbl">Bank / Receiver Name</span>
-                        <strong class="info-val">{{ MERCHANT_NAME }}</strong>
-                      </div>
-                      <div class="upi-info-cell">
-                        <span class="info-lbl">Merchant UPI ID</span>
-                        <div class="upi-copy-row">
-                          <strong class="info-val upi-id-text">{{ MERCHANT_UPI_ID }}</strong>
-                          <button type="button" class="btn-copy-upi" (click)="copyUpiId()">
-                            <span class="material-icons">{{ copiedUpi ? 'check' : 'content_copy' }}</span>
-                            {{ copiedUpi ? 'Copied!' : 'Copy' }}
-                          </button>
-                        </div>
-                      </div>
-                      <div class="upi-info-cell upi-amount-cell">
-                        <span class="info-lbl">Total Payable Amount</span>
-                        <strong class="info-val amount-highlight">&#8377;{{ finalTotal | number }}</strong>
-                      </div>
-                    </div>
-
-                    <!-- MOBILE INTENT LINK (FOR PHONES) -->
-                    <a [href]="upiPaymentUri" class="btn-mobile-upi-link">
-                      <span class="material-icons">phone_android</span> Open Directly in GPay / PhonePe App
-                    </a>
-
-                    <!-- INSTANT PAYMENT CONFIRMATION BUTTON -->
-                    <button type="button" class="btn-instant-confirm-upi" (click)="confirmUpiPayment()" [disabled]="processing">
-                      <span *ngIf="!processing">
-                        <span class="material-icons">check_circle</span> I Have Paid &#8377;{{ finalTotal | number }} &bull; Get Ticket
-                      </span>
-                      <span *ngIf="processing" class="chk-loading-text">
-                        <span class="chk-spin"></span> {{ processingMsg }}
-                      </span>
-                    </button>
-
-                    <!-- SUPPORTED APPS ROW -->
-                    <div class="upi-apps-icons-row">
-                      <span class="supported-lbl">Accepted on:</span>
-                      <span class="app-tag">Google Pay</span>
-                      <span class="app-tag">PhonePe</span>
-                      <span class="app-tag">Paytm</span>
-                      <span class="app-tag">BHIM</span>
-                      <span class="app-tag">Cred</span>
-                      <span class="app-tag">All Banks</span>
+                    <div class="qr-details-text">
+                      <p class="qr-merchant-name">{{ MERCHANT_NAME }}</p>
+                      <p class="qr-vpa-id">{{ MERCHANT_UPI_ID }}</p>
+                      <span class="qr-scan-subtext">Scan with Google Pay, PhonePe, Paytm, BHIM or any UPI App</span>
                     </div>
                   </div>
                 </div>
@@ -361,8 +310,7 @@
             <!-- PAY ACTION BUTTON -->
             <button class="chk-btn-pay" (click)="selectedMethod === 'upi' ? confirmUpiPayment() : payWithRazorpay()" [disabled]="processing">
               <span *ngIf="!processing">
-                <span class="material-icons">{{ selectedMethod === 'upi' ? 'check_circle' : 'lock' }}</span>
-                {{ selectedMethod === 'upi' ? ('Confirm UPI &bull; &#8377;' + (finalTotal | number)) : ('Pay &#8377;' + (finalTotal | number) + ' via ' + getSelectedMethodName()) }}
+                <span class="material-icons">lock</span> Pay &#8377;{{ finalTotal | number }}
               </span>
               <span *ngIf="processing" class="chk-loading-text">
                 <span class="chk-spin"></span> {{ processingMsg }}
