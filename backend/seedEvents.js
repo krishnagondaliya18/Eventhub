@@ -314,6 +314,74 @@ const sampleEvents = [
     status: 'active',
     tags: ['newyear', 'party', 'gala', 'celebration', 'dance', 'fireworks'],
     isOnline: false
+  },
+  {
+    title: 'All-India Badminton Open Smash Cup 2027',
+    description: 'Compete in men singles, women singles, and mixed doubles badminton championships on international standard synthetic courts with certified umpires.',
+    category: 'Sports',
+    date: new Date('2027-01-10T08:00:00Z'),
+    endDate: new Date('2027-01-11T19:00:00Z'),
+    location: 'Surat District Badminton Association Complex, Surat',
+    address: 'Athwalines, Surat, Gujarat 395001',
+    image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1200&q=80',
+    price: 750,
+    isFree: false,
+    totalTickets: 120,
+    availableTickets: 95,
+    status: 'active',
+    tags: ['badminton', 'sports', 'tournament', 'fitness'],
+    isOnline: false
+  },
+  {
+    title: 'Acoustic Bollywood Unplugged & Candlelight Concert',
+    description: 'Relive classic and modern Bollywood love ballads illuminated by 1,000 glowing candles, performed live by a 12-piece chamber string orchestra and playback vocalists.',
+    category: 'Music',
+    date: new Date('2027-01-17T19:00:00Z'),
+    endDate: new Date('2027-01-17T21:30:00Z'),
+    location: 'Royal Opera House, Charni Road, Mumbai',
+    address: 'Mama Parmanand Marg, Mumbai, Maharashtra 400004',
+    image: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=1200&q=80',
+    price: 1299,
+    isFree: false,
+    totalTickets: 450,
+    availableTickets: 380,
+    status: 'active',
+    tags: ['bollywood', 'music', 'candlelight', 'orchestra', 'acoustic'],
+    isOnline: false
+  },
+  {
+    title: 'Venture Capital & Fintech Disruptors Summit 2027',
+    description: 'Explore the next wave of digital banking, UPI 2.0 innovations, cross-border settlements, and DeFi solutions with fintech founders and financial regulatory bodies.',
+    category: 'Business',
+    date: new Date('2027-01-24T09:00:00Z'),
+    endDate: new Date('2027-01-24T18:00:00Z'),
+    location: 'JW Marriott Hotel, Aerocity, New Delhi',
+    address: 'Asset Area 4 - Hospitality District, Aerocity, New Delhi 110037',
+    image: 'https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&w=1200&q=80',
+    price: 2999,
+    isFree: false,
+    totalTickets: 500,
+    availableTickets: 420,
+    status: 'active',
+    tags: ['fintech', 'business', 'banking', 'venturecapital', 'summit'],
+    isOnline: false
+  },
+  {
+    title: 'Surat Street Food & Night Market Festival 2027',
+    description: 'Celebrate the world-famous culinary paradise of Surat featuring Locho, Ghari, Sev Khamani, Surti Undhiyu, Mexican fusions, and live acoustic music band stages.',
+    category: 'Food',
+    date: new Date('2027-01-30T17:00:00Z'),
+    endDate: new Date('2027-01-31T23:30:00Z'),
+    location: 'Dumas Road Exhibition Grounds, Surat',
+    address: 'Gaurav Path, Piplod, Surat, Gujarat 395007',
+    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80',
+    price: 150,
+    isFree: false,
+    totalTickets: 3000,
+    availableTickets: 2750,
+    status: 'active',
+    tags: ['food', 'surat', 'streetfood', 'nightmarket', 'festival'],
+    isOnline: false
   }
 ];
 
@@ -331,20 +399,18 @@ async function seed() {
         email: 'admin@eventhub.com',
         password: 'admin123',
         role: 'admin',
-        phone: '9999999999',
-        department: 'IT',
-        year: '4'
+        phone: '9999999999'
       });
     }
 
-    console.log(`Admin found/created: ${admin.email} (${admin._id})`);
+    console.log(`Admin user: ${admin.email} (${admin._id})`);
 
     const eventsWithOrganizer = sampleEvents.map(e => ({
       ...e,
       organizer: admin._id
     }));
 
-    console.log('Removing old events to refresh with 18 high-definition events...');
+    console.log('Refreshing database with 22 premium high-definition events...');
     await Event.deleteMany({});
 
     const inserted = await Event.insertMany(eventsWithOrganizer);
