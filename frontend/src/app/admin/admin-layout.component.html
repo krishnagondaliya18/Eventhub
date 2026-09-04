@@ -21,7 +21,14 @@
       @for (item of navItems; track item.path) {
         <a [routerLink]="item.path" routerLinkActive="active" class="nav-item">
           <span class="material-icons">{{ item.icon }}</span>
-          @if (!sidebarCollapsed) { <span>{{ item.label }}</span> }
+          @if (!sidebarCollapsed) {
+            <span class="nav-lbl-flex">
+              {{ item.label }}
+              @if (item.hasBadge && pendingEventsCount > 0) {
+                <span class="pending-bubble">{{ pendingEventsCount }}</span>
+              }
+            </span>
+          }
         </a>
       }
     </nav>

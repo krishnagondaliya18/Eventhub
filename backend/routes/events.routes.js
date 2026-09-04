@@ -70,31 +70,56 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/events — Organizer or Admin
+// POST /api/events — Any authenticated user can host/submit an event for Admin review
 router.post('/', protect, async (req, res) => {
   try {
-    const isOrganizer = req.user.role === 'organizer';
     const isAdmin = req.user.role === 'admin';
-    if (!isOrganizer && !isAdmin) {
-      return res.status(403).json({ success: false, message: 'Organizer or Admin access required to create events' });
+    
+    // If regular user hosts an event, automatically set role to 'organizer'
+    if (req.user.role === 'user') {
+      req.user.role = 'organizer';
+      await req.user.save();
     }
 
-    // Organizers submit with 'pending' status; Admins can set active directly
+    // Non-admin events always start with 'pending' status for admin approval
     const initialStatus = isAdmin ? (req.body.status || 'active') : 'pending';
 
+    const totalTickets = Number(req.body.totalTickets) || 100;
+    const availableTickets = req.body.availableTickets !== undefined 
+      ? Number(req.body.availableTickets) 
+      : totalTickets;
+
     const event = await Event.create({
-      ...req.body,
+      title: req.body.title,
+      description: req.body.description,
+      category: req.body.category || 'Music',
+      date: new Date(req.body.date),
+      endDate: req.body.endDate ? new Date(req.body.endDate) : undefined,
+      location: req.body.location,
+      address: req.body.address || '',
+      image: req.body.image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
+      price: req.body.isFree ? 0 : (Number(req.body.price) || 0),
+      isFree: req.body.isFree === true || req.body.isFree === 'true',
+      isOnline: req.body.isOnline === true || req.body.isOnline === 'true',
+      totalTickets,
+      availableTickets,
       organizer: req.user._id,
       status: initialStatus
     });
 
+    console.log(`[EventHub] Event created by ${req.user.name} (${req.user.role}): "${event.title}" [Status: ${event.status}]`);
+
     res.status(201).json({
       success: true,
       event,
-      message: isOrganizer ? 'Event submitted successfully! Awaiting Admin approval.' : 'Event created successfully.'
+      userRole: req.user.role,
+      message: isAdmin 
+        ? 'Event created successfully.' 
+        : 'Event submitted successfully! It is now pending Admin approval.'
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('[EventHub] Event creation error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Failed to create event' });
   }
 });
 
@@ -107,6 +132,8 @@ router.put('/:id/status', protect, adminOnly, async (req, res) => {
     }
     const event = await Event.findByIdAndUpdate(req.params.id, { status }, { new: true });
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    
+    console.log(`[EventHub] Admin updated event "${event.title}" status to "${status}"`);
     res.json({ success: true, message: `Event status updated to ${status}`, event });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -10,16 +11,31 @@ import { AuthService } from '../services/auth.service';
   templateUrl: './admin-layout.component.html',
   styleUrls: ['./admin-layout.component.css']
 })
-export class AdminLayoutComponent {
+export class AdminLayoutComponent implements OnInit {
   auth = inject(AuthService);
+  private http = inject(HttpClient);
   sidebarCollapsed = false;
+  pendingEventsCount = 0;
 
   navItems = [
     { path: '/admin/dashboard', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/admin/users', icon: 'people', label: 'Users' },
-    { path: '/admin/event-list', icon: 'event', label: 'Event List' },
+    { path: '/admin/users', icon: 'people', label: 'Users & Hosts' },
+    { path: '/admin/event-list', icon: 'event', label: 'Events', hasBadge: true },
     { path: '/admin/participants', icon: 'group', label: 'Participants' },
     { path: '/admin/feedback', icon: 'star', label: 'Feedback' },
     { path: '/admin/queries', icon: 'help', label: 'Queries' }
   ];
+
+  ngOnInit() {
+    this.checkPendingEvents();
+  }
+
+  checkPendingEvents() {
+    this.http.get<any>('/api/events?status=pending').subscribe({
+      next: (res) => {
+        this.pendingEventsCount = res.total || (res.events ? res.events.length : 0);
+      },
+      error: () => {}
+    });
+  }
 }
