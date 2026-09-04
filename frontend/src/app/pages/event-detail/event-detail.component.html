@@ -90,9 +90,29 @@
         </div>
         <p class="sold-text" *ngIf="event?.totalTickets">{{ soldPercent }}% sold</p>
 
+        <div class="event-cancelled-alert" *ngIf="event?.status === 'cancelled'">
+          <span class="material-icons">cancel</span>
+          <div>
+            <strong>Event Cancelled</strong>
+            <p>This event has been cancelled. Ticket booking and registration are closed.</p>
+          </div>
+        </div>
+
+        <div class="event-cancelled-alert" *ngIf="event?.status === 'withdrawn'">
+          <span class="material-icons">info</span>
+          <div>
+            <strong>Event Withdrawn</strong>
+            <p>This event has been withdrawn from public listings.</p>
+          </div>
+        </div>
+
         <div class="booked-badge" *ngIf="alreadyBooked">&#10003; Booking Confirmed</div>
 
-        <button class="btn-book" *ngIf="!alreadyBooked" [disabled]="processing"
+        <button class="btn-book btn-book-disabled" *ngIf="!alreadyBooked && (event?.status === 'cancelled' || event?.status === 'withdrawn')" disabled>
+          {{ event?.status === 'cancelled' ? 'Event Cancelled' : 'Event Withdrawn' }}
+        </button>
+
+        <button class="btn-book" *ngIf="!alreadyBooked && event?.status !== 'cancelled' && event?.status !== 'withdrawn'" [disabled]="processing"
           (click)="event?.isFree ? bookFree() : openModal()">
           {{ processing ? 'Processing...' : (event?.isFree ? 'Register Free' : 'Book Tickets') }}
         </button>

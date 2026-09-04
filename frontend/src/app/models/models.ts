@@ -23,7 +23,7 @@ export interface Event {
   isFree: boolean;
   totalTickets: number;
   availableTickets: number;
-  status: 'active' | 'pending' | 'rejected' | 'draft' | 'completed' | 'cancelled';
+  status: 'active' | 'pending' | 'rejected' | 'draft' | 'completed' | 'cancelled' | 'withdrawn';
   organizer?: User;
   participants?: string[];
   tags?: string[];

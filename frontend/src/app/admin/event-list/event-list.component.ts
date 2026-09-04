@@ -106,6 +106,42 @@ export class EventListComponent implements OnInit, OnDestroy {
     });
   }
 
+  cancelEvent(id: string) {
+    if (!confirm('Are you sure you want to cancel this event? Ticket sales will be stopped and attendees will see it as Cancelled.')) return;
+    this.http.put<any>(`/api/events/${id}/status`, { status: 'cancelled' }).subscribe({
+      next: () => {
+        this.message = 'Event has been marked as Cancelled.';
+        this.messageType = 'success';
+        this.loadEvents();
+        setTimeout(() => this.message = '', 4000);
+      },
+      error: (err) => {
+        this.message = err?.error?.message || 'Failed to cancel event.';
+        this.messageType = 'error';
+      }
+    });
+  }
+
+  withdrawEvent(id: string) {
+    if (!confirm('Are you sure you want to withdraw this event submission?')) return;
+    this.http.put<any>(`/api/events/${id}/status`, { status: 'withdrawn' }).subscribe({
+      next: () => {
+        this.message = 'Event submission has been withdrawn.';
+        this.messageType = 'success';
+        this.loadEvents();
+        setTimeout(() => this.message = '', 4000);
+      },
+      error: (err) => {
+        this.message = err?.error?.message || 'Failed to withdraw event.';
+        this.messageType = 'error';
+      }
+    });
+  }
+
+  getCancelledCount(): number {
+    return this.events.filter(e => e.status === 'cancelled' || e.status === 'withdrawn').length;
+  }
+
   openAdd() {
     this.form = {
       title:'', description:'', category:'Music', date:'', location:'',

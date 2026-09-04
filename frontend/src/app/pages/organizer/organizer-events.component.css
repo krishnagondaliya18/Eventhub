@@ -306,27 +306,94 @@
   color: #60a5fa;
 }
 
-.btn-view-link {
+.status-cancelled {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+.status-withdrawn {
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #94a3b8;
+}
+
+.org-action-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-action-view {
   color: #60a5fa;
   font-weight: 700;
   text-decoration: none;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(96, 165, 250, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
 }
 
-.btn-view-link:hover {
-  text-decoration: underline;
+.btn-action-view:hover {
+  background: rgba(96, 165, 250, 0.25);
+  text-decoration: none;
 }
 
-.text-muted-status {
-  font-size: 0.78rem;
-  color: #fbbf24;
-  font-weight: 700;
-}
-
-.text-rejected-status {
-  font-size: 0.78rem;
+.btn-action-cancel {
+  background: rgba(239, 68, 68, 0.12);
   color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  font-size: 0.78rem;
   font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-action-cancel:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-action-withdraw {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-action-withdraw:hover {
+  background: #fbbf24;
+  color: #0f172a;
+}
+
+.btn-action-delete {
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-action-delete:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
 }
 
 .empty-events-state {

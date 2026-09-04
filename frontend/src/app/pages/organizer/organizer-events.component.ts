@@ -138,7 +138,51 @@ export class OrganizerEventsComponent implements OnInit {
     return this.events.filter(e => e.status === 'active').length;
   }
 
+  getCancelledCount(): number {
+    return this.events.filter(e => e.status === 'cancelled' || e.status === 'withdrawn').length;
+  }
+
   getTotalRevenue(): number {
     return this.events.reduce((acc, e) => acc + (e.revenue || 0), 0);
   }
+
+  withdrawEvent(ev: Event): void {
+    if (!confirm(`Are you sure you want to withdraw the submission for "${ev.title}"? It will be removed from Admin review.`)) return;
+    this.http.put<any>(`/api/events/${ev._id}/status`, { status: 'withdrawn' }).subscribe({
+      next: () => {
+        this.showMessage(`Submission for "${ev.title}" has been withdrawn.`, 'success');
+        this.loadMyEvents();
+      },
+      error: (err) => {
+        this.showMessage(err?.error?.message || 'Failed to withdraw event.', 'error');
+      }
+    });
+  }
+
+  cancelEvent(ev: Event): void {
+    if (!confirm(`Are you sure you want to cancel "${ev.title}"? Ticket bookings will stop and attendees will see it as Cancelled.`)) return;
+    this.http.put<any>(`/api/events/${ev._id}/status`, { status: 'cancelled' }).subscribe({
+      next: () => {
+        this.showMessage(`Event "${ev.title}" has been marked as Cancelled.`, 'success');
+        this.loadMyEvents();
+      },
+      error: (err) => {
+        this.showMessage(err?.error?.message || 'Failed to cancel event.', 'error');
+      }
+    });
+  }
+
+  deleteEvent(ev: Event): void {
+    if (!confirm(`Are you sure you want to permanently delete "${ev.title}"? This action cannot be undone.`)) return;
+    this.http.delete<any>(`/api/events/${ev._id}`).subscribe({
+      next: () => {
+        this.showMessage(`Event "${ev.title}" deleted successfully.`, 'success');
+        this.loadMyEvents();
+      },
+      error: (err) => {
+        this.showMessage(err?.error?.message || 'Failed to delete event.', 'error');
+      }
+    });
+  }
 }
+

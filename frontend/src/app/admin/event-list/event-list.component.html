@@ -32,6 +32,9 @@
     <button class="filter-pill" [class.active]="currentStatusFilter === 'rejected'" (click)="setFilter('rejected')">
       ❌ Rejected
     </button>
+    <button class="filter-pill pill-cancelled" [class.active]="currentStatusFilter === 'cancelled'" (click)="setFilter('cancelled')">
+      🚫 Cancelled / Withdrawn
+    </button>
   </div>
 
   <div class="card">
@@ -78,8 +81,8 @@
                   <span class="badge"
                     [class.badge-success]="ev.status==='active'"
                     [class.badge-warning]="ev.status==='pending'"
-                    [class.badge-danger]="ev.status==='rejected'"
-                    [class.badge-secondary]="ev.status==='completed' || ev.status==='draft'">
+                    [class.badge-danger]="ev.status==='rejected' || ev.status==='cancelled'"
+                    [class.badge-secondary]="ev.status==='completed' || ev.status==='draft' || ev.status==='withdrawn'">
                     {{ ev.status === 'pending' ? 'Pending Approval' : (ev.status | titlecase) }}
                   </span>
                 </td>
@@ -91,6 +94,14 @@
                       </button>
                       <button class="btn btn-sm btn-reject" (click)="rejectEvent(ev._id)" title="Reject event">
                         ✕ Reject
+                      </button>
+                      <button class="btn btn-sm btn-cancel-act" (click)="withdrawEvent(ev._id)" title="Withdraw event">
+                        Withdraw
+                      </button>
+                    }
+                    @if (ev.status === 'active') {
+                      <button class="btn btn-sm btn-cancel-act" (click)="cancelEvent(ev._id)" title="Cancel event and stop bookings">
+                        Cancel Event
                       </button>
                     }
                     <button class="btn btn-sm btn-edit-act" (click)="openEdit(ev)">Edit</button>

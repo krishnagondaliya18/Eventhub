@@ -42,6 +42,10 @@
         <strong class="stat-value text-warning">{{ getPendingCount() }}</strong>
       </div>
       <div class="stat-card">
+        <span class="stat-label">Cancelled / Withdrawn</span>
+        <strong class="stat-value text-muted">{{ getCancelledCount() }}</strong>
+      </div>
+      <div class="stat-card">
         <span class="stat-label">Total Revenue</span>
         <strong class="stat-value text-primary">₹{{ getTotalRevenue() }}</strong>
       </div>
@@ -114,11 +118,20 @@
                 </span>
               </td>
               <td>
-                <a [routerLink]="['/events', ev._id]" class="btn-view-link" *ngIf="ev.status === 'active'">
-                  View Live &rarr;
-                </a>
-                <span *ngIf="ev.status === 'pending'" class="text-muted-status">Under Review</span>
-                <span *ngIf="ev.status === 'rejected'" class="text-rejected-status">Rejected</span>
+                <div class="org-action-btns">
+                  <a [routerLink]="['/events', ev._id]" class="btn-action-view" *ngIf="ev.status === 'active'" title="View live event page">
+                    View &rarr;
+                  </a>
+                  <button type="button" class="btn-action-cancel" *ngIf="ev.status === 'active'" (click)="cancelEvent(ev)" title="Cancel this event">
+                    Cancel Event
+                  </button>
+                  <button type="button" class="btn-action-withdraw" *ngIf="ev.status === 'pending'" (click)="withdrawEvent(ev)" title="Withdraw submission from Admin review">
+                    Withdraw
+                  </button>
+                  <button type="button" class="btn-action-delete" *ngIf="ev.status === 'pending' || ev.status === 'cancelled' || ev.status === 'withdrawn' || ev.status === 'rejected'" (click)="deleteEvent(ev)" title="Delete event permanently">
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

@@ -123,18 +123,41 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
-// PUT /api/events/:id/status — Admin Approve / Reject
-router.put('/:id/status', protect, adminOnly, async (req, res) => {
+// PUT /api/events/:id/status — Admin (all statuses) or Event Owner (cancel/withdraw)
+router.put('/:id/status', protect, async (req, res) => {
   try {
-    const { status } = req.body;
-    if (!['active', 'pending', 'rejected', 'draft', 'completed', 'cancelled'].includes(status)) {
+    const { status, reason } = req.body;
+    const allowedStatuses = ['active', 'pending', 'rejected', 'draft', 'completed', 'cancelled', 'withdrawn'];
+    if (!allowedStatuses.includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid event status' });
     }
-    const event = await Event.findByIdAndUpdate(req.params.id, { status }, { new: true });
+
+    const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
-    
-    console.log(`[EventHub] Admin updated event "${event.title}" status to "${status}"`);
-    res.json({ success: true, message: `Event status updated to ${status}`, event });
+
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = event.organizer && event.organizer.toString() === req.user._id.toString();
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ success: false, message: 'Not authorized to change status for this event' });
+    }
+
+    // Non-admins can only cancel or withdraw their own event
+    if (!isAdmin && !['cancelled', 'withdrawn'].includes(status)) {
+      return res.status(403).json({ success: false, message: 'Organizers can only cancel or withdraw their own events' });
+    }
+
+    event.status = status;
+    await event.save();
+
+    const actionName = status === 'withdrawn' ? 'withdrawn' : status === 'cancelled' ? 'cancelled' : status;
+    console.log(`[EventHub] ${isAdmin ? 'Admin' : 'Organizer'} ${req.user.name} marked event "${event.title}" as ${status}`);
+
+    res.json({
+      success: true,
+      message: `Event has been successfully ${actionName}.`,
+      event
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

@@ -89,6 +89,18 @@
   padding: 4px 10px;
 }
 
+.btn-cancel-act {
+  background: #ea580c !important;
+  color: #fff !important;
+  font-weight: 700;
+  padding: 4px 10px;
+}
+
+.filter-pill.pill-cancelled.active {
+  background: #ea580c;
+  border-color: #ea580c;
+}
+
 /* Modal styles */
 .modal-overlay {
   position: fixed; inset: 0;
