@@ -11,6 +11,11 @@ export const routes: Routes = [
   { path: 'bookings', loadComponent: () => import('./pages/bookings/bookings.component').then(m => m.BookingsComponent) },
   { path: 'feedback', loadComponent: () => import('./pages/feedback/feedback.component').then(m => m.FeedbackComponent) },
   { path: 'queries',  loadComponent: () => import('./pages/queries/queries.component').then(m => m.QueriesComponent) },
+  { path: 'terms',    loadComponent: () => import('./pages/policies/terms/terms.component').then(m => m.TermsComponent) },
+  { path: 'privacy',  loadComponent: () => import('./pages/policies/privacy/privacy.component').then(m => m.PrivacyComponent) },
+  { path: 'refund-policy', loadComponent: () => import('./pages/policies/refund-policy/refund-policy.component').then(m => m.RefundPolicyComponent) },
+  { path: 'cancellation-refund', redirectTo: 'refund-policy', pathMatch: 'full' },
+  { path: 'contact',  loadComponent: () => import('./pages/policies/contact/contact.component').then(m => m.ContactComponent) },
   {
     path: 'admin',
     canActivate: [adminGuard],

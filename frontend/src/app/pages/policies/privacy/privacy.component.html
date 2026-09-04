@@ -1,0 +1,96 @@
+<app-navbar></app-navbar>
+
+<div class="policy-page-wrapper">
+  <div class="policy-hero">
+    <div class="policy-container">
+      <span class="policy-pill">DATA PROTECTION &amp; PRIVACY</span>
+      <h1>Privacy Policy (પ્રાઇવસી પોલિસી)</h1>
+      <p class="policy-subtitle">
+        Your privacy is important to us. This Privacy Policy explains how EventHub collects, protects, uses, and handles your personal information.
+      </p>
+      <span class="last-updated">Last Updated: {{ lastUpdated }} &bull; In accordance with Information Technology Act, 2000</span>
+    </div>
+  </div>
+
+  <div class="policy-container policy-content-layout">
+    <div class="policy-card">
+      <div class="policy-section">
+        <h2>૧. અમે કઈ માહિતી એકત્રિત કરીએ છીએ (1. Information We Collect)</h2>
+        <p>
+          EventHub (&ldquo;we&rdquo;, &ldquo;our&rdquo;) collects information that you directly provide when registering an account, booking tickets, posting reviews, or submitting support queries:
+        </p>
+        <ul>
+          <li><strong>Personal Identifiers:</strong> Full Name, Email Address, Phone/Mobile Number.</li>
+          <li><strong>Academic/Profile Details:</strong> Department, College/Institution Name, Academic Year (for student events and eligibility verification).</li>
+          <li><strong>Transactional Metadata:</strong> Event details, quantity of tickets, Booking ID (`TRX-...`), payment timestamps, and transaction reference IDs issued by our payment gateway.</li>
+          <li><strong>User Content:</strong> Feedback ratings, event inquiries, and public event comments.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2>૨. માહિતીનો ઉપયોગ કેવી રીતે થાય છે (2. How We Use Your Information)</h2>
+        <p>We process your data strictly for legitimate operational purposes:</p>
+        <ul>
+          <li>To generate, deliver, and validate your official E-Tickets and Booking QR codes.</li>
+          <li>To transmit booking confirmations, event schedule updates, and urgent alerts.</li>
+          <li>To authenticate user sessions securely via JSON Web Tokens (JWT).</li>
+          <li>To provide customer support and address queries submitted to <a href="mailto:gondaliyakishan839@gmail.com" class="text-link">gondaliyakishan839&#64;gmail.com</a>.</li>
+          <li>To prevent fraudulent bookings and maintain the security of our platform.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2>૩. ચુકવણી સુરક્ષા અને Razorpay (3. Payment Security &amp; Razorpay Compliance)</h2>
+        <p>
+          <strong>Security Guarantee:</strong> We prioritize your financial data privacy with bank-grade standards:
+        </p>
+        <ul>
+          <li>All online financial transactions are encrypted using <strong>256-bit SSL encryption</strong> and processed through <strong>Razorpay</strong>, a PCI-DSS Level 1 compliant payment aggregator.</li>
+          <li><strong>No Storage of Sensitive Card/UPI Data:</strong> EventHub never stores or has access to your full credit/debit card numbers, CVV, Net Banking passwords, or UPI PINs.</li>
+          <li>All payment requests and webhooks follow cryptographic HMAC-SHA256 signature verification.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2>૪. ડેટા શેરિંગ નીતિ (4. Data Sharing &amp; Third Parties)</h2>
+        <p>
+          <strong>We DO NOT sell, rent, or trade your personal information to third-party advertisers.</strong>
+        </p>
+        <p>Your data is shared strictly in the following limited circumstances:</p>
+        <ul>
+          <li><strong>Event Organizers:</strong> Organizers receive attendee name, email, and ticket status solely for venue check-in verification and event administration.</li>
+          <li><strong>Payment Processors:</strong> Necessary transaction data is shared securely with Razorpay and banking networks to complete payment processing and refunds.</li>
+          <li><strong>Legal Obligations:</strong> When strictly required by law enforcement or regulatory authorities under Indian law.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2>૫. કૂકીઝ અને સ્થાનિક સંગ્રહ (5. Cookies &amp; Local Storage)</h2>
+        <p>
+          EventHub utilizes browser `localStorage` solely to maintain your active login session (JWT authentication token) so you do not have to re-login on every page navigation. We do not use third-party tracking cookies for cross-site behavioral advertising.
+        </p>
+      </div>
+
+      <div class="policy-section">
+        <h2>૬. ડેટા સુરક્ષા અને વપરાશકર્તાના અધિકારો (6. Data Retention &amp; User Rights)</h2>
+        <ul>
+          <li><strong>Access &amp; Update:</strong> You may review and update your profile information at any time under your Account Profile.</li>
+          <li><strong>Comment &amp; Booking Management:</strong> You have the right to edit or delete comments you have posted on event pages.</li>
+          <li><strong>Account Deletion:</strong> You may request complete erasure of your personal data by contacting us via email.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section contact-highlight-box">
+        <h3>ડેટા પ્રોટેક્શન અને સંપર્ક (Grievance Officer &amp; Contact)</h3>
+        <p>
+          If you have questions, concerns, or grievances regarding this Privacy Policy or your personal data, please reach out to our designated representative:
+        </p>
+        <p><strong>Grievance Officer:</strong> Krishna Gondaliya</p>
+        <p><strong>Email:</strong> <a href="mailto:gondaliyakishan839@gmail.com">gondaliyakishan839&#64;gmail.com</a></p>
+        <p><strong>Address:</strong> Surat, Gujarat, India - 395006</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>
