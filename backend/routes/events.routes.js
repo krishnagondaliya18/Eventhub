@@ -26,9 +26,26 @@ router.get('/my/created', protect, async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     await syncEventStatus(); // instant check on every list fetch
-    const { category, status, search, isFree, isOnline, page = 1, limit = 10 } = req.query;
+    const {
+      category,
+      status,
+      search,
+      location,
+      budget,
+      minPrice,
+      maxPrice,
+      isFree,
+      isOnline,
+      page = 1,
+      limit = 10
+    } = req.query;
+
     const filter = {};
-    if (category) filter.category = category;
+
+    // Category filter
+    if (category && category !== 'all' && category !== 'All' && category !== 'All Categories') {
+      filter.category = category;
+    }
     
     // Default public search to active events only unless explicitly querying all
     if (status && (status === 'all' || status === 'any')) {
@@ -39,9 +56,50 @@ router.get('/', async (req, res) => {
       filter.status = 'active';
     }
 
-    if (isFree    !== undefined) filter.isFree    = isFree    === 'true';
-    if (isOnline  !== undefined) filter.isOnline  = isOnline  === 'true';
-    if (search)   filter.title = { $regex: search, $options: 'i' };
+    if (isFree !== undefined && isFree !== '') {
+      filter.isFree = isFree === 'true';
+    }
+    if (isOnline !== undefined && isOnline !== '') {
+      filter.isOnline = isOnline === 'true';
+    }
+
+    // Location filter
+    if (location && location.trim() && location.toLowerCase() !== 'all' && location.toLowerCase() !== 'all locations' && location.toLowerCase() !== 'all cities') {
+      filter.location = { $regex: location.trim(), $options: 'i' };
+    }
+
+    // Budget / Price filter
+    if (budget) {
+      if (budget === 'free') {
+        filter.isFree = true;
+      } else if (budget === 'under500') {
+        filter.price = { $lte: 500 };
+      } else if (budget === '500-1000') {
+        filter.price = { $gte: 500, $lte: 1000 };
+      } else if (budget === '1000-2000') {
+        filter.price = { $gte: 1000, $lte: 2000 };
+      } else if (budget === 'above2000') {
+        filter.price = { $gte: 2000 };
+      }
+    } else if (minPrice !== undefined || maxPrice !== undefined) {
+      filter.price = {};
+      if (minPrice !== undefined && minPrice !== '') filter.price.$gte = Number(minPrice);
+      if (maxPrice !== undefined && maxPrice !== '') filter.price.$lte = Number(maxPrice);
+      if (Object.keys(filter.price).length === 0) delete filter.price;
+    }
+
+    // Multi-field search (title, description, location, category, tags)
+    if (search && search.trim()) {
+      const q = search.trim();
+      const sRegex = new RegExp(q, 'i');
+      filter.$or = [
+        { title: sRegex },
+        { description: sRegex },
+        { location: sRegex },
+        { category: sRegex },
+        { tags: { $in: [sRegex] } }
+      ];
+    }
 
     const skip  = (page - 1) * limit;
     const total = await Event.countDocuments(filter);
@@ -52,6 +110,35 @@ router.get('/', async (req, res) => {
       .limit(Number(limit));
 
     res.json({ success: true, total, page: Number(page), events });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/events/suggestions — quick live autocomplete recommendations
+router.get('/suggestions', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || !q.trim()) {
+      return res.json({ success: true, suggestions: [] });
+    }
+    const query = q.trim();
+    const searchRegex = new RegExp(query, 'i');
+    const filter = {
+      status: 'active',
+      $or: [
+        { title: searchRegex },
+        { category: searchRegex },
+        { location: searchRegex },
+        { tags: { $in: [searchRegex] } }
+      ]
+    };
+    const suggestions = await Event.find(filter)
+      .select('title category location date image price isFree')
+      .sort({ date: 1 })
+      .limit(6);
+
+    res.json({ success: true, suggestions });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

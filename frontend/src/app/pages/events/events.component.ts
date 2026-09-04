@@ -24,13 +24,48 @@ export class EventsComponent implements OnInit {
   page = 1;
   limit = 9;
 
-  filters = { category: '', status: 'active', search: '', isFree: '', isOnline: '' };
+  filters = {
+    category: '',
+    status: 'active',
+    search: '',
+    location: '',
+    budget: '',
+    isFree: '',
+    isOnline: ''
+  };
 
   categories = ['Music', 'Sports', 'Art', 'Business', 'Technology', 'Food', 'Films', 'Parties', 'Science', 'Other'];
+
+  locations = [
+    { label: 'All Cities', value: '' },
+    { label: 'Surat', value: 'Surat' },
+    { label: 'Mumbai', value: 'Mumbai' },
+    { label: 'Ahmedabad', value: 'Ahmedabad' },
+    { label: 'Bengaluru', value: 'Bengaluru' },
+    { label: 'New Delhi', value: 'New Delhi' },
+    { label: 'Goa', value: 'Goa' },
+    { label: 'Online Events', value: 'Online' }
+  ];
+
+  budgetOptions = [
+    { label: 'All Budgets', value: '' },
+    { label: 'Free Entry (₹0)', value: 'free' },
+    { label: 'Under ₹500', value: 'under500' },
+    { label: '₹500 - ₹1,000', value: '500-1000' },
+    { label: '₹1,000 - ₹2,000', value: '1000-2000' },
+    { label: 'Above ₹2,000', value: 'above2000' }
+  ];
+
+  private searchDebounce: any;
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       if (params['category']) this.filters.category = params['category'];
+      if (params['search']) this.filters.search = params['search'];
+      if (params['location']) this.filters.location = params['location'];
+      if (params['budget']) this.filters.budget = params['budget'];
+      if (params['isFree']) this.filters.isFree = params['isFree'];
+      if (params['isOnline']) this.filters.isOnline = params['isOnline'];
       this.loadEvents();
     });
   }
@@ -47,8 +82,19 @@ export class EventsComponent implements OnInit {
     });
   }
 
+  onSearchInput(): void {
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => {
+      this.applyFilters();
+    }, 250);
+  }
+
   applyFilters() { this.page = 1; this.loadEvents(); }
-  clearFilters() { this.filters = { category: '', status: 'active', search: '', isFree: '', isOnline: '' }; this.page = 1; this.loadEvents(); }
+  clearFilters() {
+    this.filters = { category: '', status: 'active', search: '', location: '', budget: '', isFree: '', isOnline: '' };
+    this.page = 1;
+    this.loadEvents();
+  }
   nextPage() { if (this.page * this.limit < this.total) { this.page++; this.loadEvents(); } }
   prevPage() { if (this.page > 1) { this.page--; this.loadEvents(); } }
 

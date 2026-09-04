@@ -50,6 +50,37 @@
   box-shadow: var(--shadow);
 }
 .filter-card h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 14px; }
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-input-wrap input {
+  padding-right: 32px;
+}
+.btn-clear-search {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+}
+.btn-clear-search:hover {
+  color: var(--text);
+}
+.form-select-filter {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
 .cat-list { display: flex; flex-direction: column; gap: 4px; }
 .cat-item {
   text-align: left;

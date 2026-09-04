@@ -6,16 +6,150 @@
   <div class="hero-content">
     <h1>Pick up your<br><span class="hero-accent">wonderful plans</span></h1>
     <p class="hero-sub">Discover thousands of events happening around you</p>
-    <div class="hero-search">
-      <div class="search-input">
-        <span class="material-icons">search</span>
-        <input type="text" placeholder="Find the event you're interested in...">
+    <div class="hero-search-wrapper">
+      <div class="hero-search">
+        <!-- SEARCH KEYWORD FIELD (with Google-like autocomplete dropdown) -->
+        <div class="search-field search-keyword">
+          <span class="material-icons field-icon">search</span>
+          <div class="field-content">
+            <label class="field-label">Search</label>
+            <input
+              type="text"
+              placeholder="Events, artists, concerts, venues..."
+              [(ngModel)]="searchQuery"
+              (input)="onSearchInput()"
+              (focus)="onSearchFocus()"
+              (blur)="closeDropdownWithDelay()"
+              (keyup.enter)="executeSearch()"
+              autocomplete="off"
+            />
+          </div>
+          @if (searchQuery) {
+            <button type="button" class="btn-clear-q" (click)="searchQuery = ''; onSearchInput()">
+              <span class="material-icons">close</span>
+            </button>
+          }
+
+          <!-- GOOGLE-LIKE LIVE AUTOCOMPLETE RECOMMENDATIONS DROPDOWN -->
+          @if (showDropdown) {
+            <div class="search-suggestions-dropdown" (mousedown)="$event.preventDefault()">
+              <!-- If suggestions exist -->
+              @if (suggestions.length > 0) {
+                <div class="dropdown-header">
+                  <span>🎪 Top Matches ({{ suggestions.length }})</span>
+                  <span class="dropdown-hint">Press Enter to view all</span>
+                </div>
+                <div class="suggestions-list">
+                  @for (item of suggestions; track item._id) {
+                    <div class="suggestion-item" (click)="selectEvent(item)">
+                      <img [src]="item.image" alt="" class="sugg-thumb" />
+                      <div class="sugg-details">
+                        <strong class="sugg-title">{{ item.title }}</strong>
+                        <div class="sugg-meta">
+                          <span class="sugg-cat">{{ item.category }}</span>
+                          <span class="sugg-dot">&bull;</span>
+                          <span class="sugg-loc"><span class="material-icons">location_on</span>{{ item.location }}</span>
+                          <span class="sugg-dot">&bull;</span>
+                          <span class="sugg-date">{{ item.date | date:'MMM d, y' }}</span>
+                        </div>
+                      </div>
+                      <div class="sugg-price" [class.free]="item.isFree">
+                        {{ item.isFree ? 'FREE' : '₹' + item.price }}
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="dropdown-footer" (click)="executeSearch()">
+                  <span>Explore all results for "<strong>{{ searchQuery }}</strong>" &rarr;</span>
+                </div>
+              }
+
+              <!-- If query is typed but no matches found -->
+              @if (suggestions.length === 0 && searchQuery.trim() && !loadingSuggestions) {
+                <div class="no-matches-box">
+                  <span class="material-icons">search_off</span>
+                  <p>No exact events found matching "<strong>{{ searchQuery }}</strong>"</p>
+                  <button type="button" class="btn-search-anyway" (click)="executeSearch()">Search all events &rarr;</button>
+                </div>
+              }
+
+              <!-- Trending Searches (if input is empty) -->
+              @if (!searchQuery.trim()) {
+                <div class="trending-box">
+                  <div class="trending-title">
+                    <span class="material-icons">local_fire_department</span>
+                    <span>Trending Searches</span>
+                  </div>
+                  <div class="trending-chips">
+                    @for (t of trendingSearches; track t) {
+                      <button type="button" class="trend-chip" (mousedown)="selectTrending(t)">
+                        {{ t }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- LOCATION SELECTOR -->
+        <div class="search-field search-location">
+          <span class="material-icons field-icon">location_on</span>
+          <div class="field-content">
+            <label class="field-label">Location</label>
+            <select [(ngModel)]="selectedLocation">
+              @for (loc of locations; track loc.value) {
+                <option [value]="loc.value">{{ loc.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- CATEGORY SELECTOR -->
+        <div class="search-field search-category">
+          <span class="material-icons field-icon">category</span>
+          <div class="field-content">
+            <label class="field-label">Category</label>
+            <select [(ngModel)]="selectedCategory">
+              <option value="">All Categories</option>
+              @for (cat of filterCategories; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- BUDGET / TICKET PRICE SELECTOR -->
+        <div class="search-field search-budget">
+          <span class="material-icons field-icon">payments</span>
+          <div class="field-content">
+            <label class="field-label">Budget</label>
+            <select [(ngModel)]="selectedBudget">
+              @for (b of budgetOptions; track b.value) {
+                <option [value]="b.value">{{ b.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- SEARCH BUTTON -->
+        <button type="button" class="btn-hero-search" (click)="executeSearch()">
+          <span class="material-icons">search</span>
+          <span>Find Events</span>
+        </button>
       </div>
-      <div class="search-location">
-        <span class="material-icons">location_on</span>
-        <input type="text" value="New York, NY">
+
+      <!-- POPULAR QUICK PILLS BELOW SEARCH -->
+      <div class="quick-tags-row">
+        <span class="quick-tags-label">Popular:</span>
+        <button type="button" class="quick-tag" (click)="selectedLocation = 'Surat'; executeSearch()">📍 Surat</button>
+        <button type="button" class="quick-tag" (click)="selectedLocation = 'Mumbai'; executeSearch()">📍 Mumbai</button>
+        <button type="button" class="quick-tag" (click)="selectedCategory = 'Music'; executeSearch()">🎵 Music</button>
+        <button type="button" class="quick-tag" (click)="selectedCategory = 'Sports'; executeSearch()">🏏 Cricket &amp; Sports</button>
+        <button type="button" class="quick-tag" (click)="selectedBudget = 'free'; executeSearch()">🎁 Free Events</button>
+        <button type="button" class="quick-tag" (click)="selectedBudget = 'under500'; executeSearch()">💰 Under ₹500</button>
       </div>
-      <a routerLink="/events" class="btn btn-primary btn-lg">Search</a>
     </div>
   </div>
 </section>
@@ -24,7 +158,7 @@
 <section class="section">
   <div class="container">
     <div class="section-header">
-      <h2>New events in <span class="text-primary">NYC</span></h2>
+      <h2>Trending &amp; <span class="text-primary">Featured Events</span></h2>
       <a routerLink="/events" class="btn btn-outline btn-sm">View more</a>
     </div>
     @if (loading) {

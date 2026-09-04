@@ -21,12 +21,52 @@
 
   <div class="container events-body">
     <div class="sidebar">
+      <!-- Search Input -->
       <div class="filter-card">
         <h3>Search</h3>
-        <input class="form-control" type="text" placeholder="Search events..." [(ngModel)]="filters.search" (input)="applyFilters()">
+        <div class="search-input-wrap">
+          <input
+            class="form-control"
+            type="text"
+            placeholder="Keywords, artist, venue..."
+            [(ngModel)]="filters.search"
+            (input)="onSearchInput()"
+          />
+          @if (filters.search) {
+            <button class="btn-clear-search" (click)="filters.search=''; applyFilters()">✕</button>
+          }
+        </div>
       </div>
+
+      <!-- Location Filter -->
       <div class="filter-card">
-        <h3>Category</h3>
+        <h3>📍 City / Location</h3>
+        <select class="form-control form-select-filter" [(ngModel)]="filters.location" (change)="applyFilters()">
+          @for (loc of locations; track loc.value) {
+            <option [value]="loc.value">{{ loc.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Ticket Budget Filter -->
+      <div class="filter-card">
+        <h3>💰 Ticket Budget</h3>
+        <div class="cat-list">
+          @for (b of budgetOptions; track b.value) {
+            <button
+              class="cat-item"
+              [class.active]="filters.budget === b.value"
+              (click)="filters.budget = b.value; applyFilters()"
+            >
+              {{ b.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="filter-card">
+        <h3>🏷️ Category</h3>
         <div class="cat-list">
           <button class="cat-item" [class.active]="filters.category===''" (click)="filters.category=''; applyFilters()">All Categories</button>
           @for (cat of categories; track cat) {
@@ -34,7 +74,8 @@
           }
         </div>
       </div>
-      <button class="btn btn-outline w-full" (click)="clearFilters()">Clear Filters</button>
+
+      <button class="btn btn-outline w-full" (click)="clearFilters()">Clear All Filters</button>
     </div>
 
     <div class="events-main">

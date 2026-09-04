@@ -23,6 +23,11 @@ export class EventService {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
+  getSuggestions(q: string): Observable<any> {
+    const params = new HttpParams().set('q', q);
+    return this.http.get<any>(`${this.apiUrl}/suggestions`, { params });
+  }
+
   createEvent(data: Partial<Event>): Observable<any> {
     return this.http.post<any>(this.apiUrl, data);
   }
