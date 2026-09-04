@@ -1,3 +1,63 @@
 @import '../login/login.component.css';
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+
+.role-selector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.role-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #0f172a;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.role-card:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: #162036;
+}
+
+.role-card.selected {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  box-shadow: 0 0 0 1px #ef4444;
+}
+
+.role-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.role-card strong {
+  display: block;
+  font-size: 0.88rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+.role-card p {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  line-height: 1.2;
+}
+
+.hidden-radio {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .form-row,
+  .role-selector-grid {
+    grid-template-columns: 1fr;
+  }
+}

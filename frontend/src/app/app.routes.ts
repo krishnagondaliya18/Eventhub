@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from './guards/auth.guard';
+import { adminGuard, organizerGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '',          loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent) },
@@ -11,6 +11,11 @@ export const routes: Routes = [
   { path: 'bookings', loadComponent: () => import('./pages/bookings/bookings.component').then(m => m.BookingsComponent) },
   { path: 'feedback', loadComponent: () => import('./pages/feedback/feedback.component').then(m => m.FeedbackComponent) },
   { path: 'queries',  loadComponent: () => import('./pages/queries/queries.component').then(m => m.QueriesComponent) },
+  {
+    path: 'organizer/events',
+    canActivate: [organizerGuard],
+    loadComponent: () => import('./pages/organizer/organizer-events.component').then(m => m.OrganizerEventsComponent)
+  },
   { path: 'terms',    loadComponent: () => import('./pages/policies/terms/terms.component').then(m => m.TermsComponent) },
   { path: 'privacy',  loadComponent: () => import('./pages/policies/privacy/privacy.component').then(m => m.PrivacyComponent) },
   { path: 'refund-policy', loadComponent: () => import('./pages/policies/refund-policy/refund-policy.component').then(m => m.RefundPolicyComponent) },

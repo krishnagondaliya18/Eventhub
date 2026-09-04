@@ -18,7 +18,7 @@ export class ProfileComponent implements OnInit {
   saving    = false;
   message   = '';
   msgType:  'success'|'error' = 'success';
-  form      = { name:'', phone:'', year:'', department:'' };
+  form      = { name:'', phone:'' };
   pwForm    = { currentPassword:'', newPassword:'', confirmPassword:'' };
   showPw    = false;
 
@@ -26,7 +26,7 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     const u = this.auth.getUser();
-    if (u) { this.user = u; this.form = { name: u.name||'', phone: u.phone||'', year: u.year||'', department: u.department||'' }; }
+    if (u) { this.user = u; this.form = { name: u.name||'', phone: u.phone||'' }; }
   }
 
   saveProfile(): void {
@@ -57,7 +57,7 @@ export class ProfileComponent implements OnInit {
   cancelEdit(): void {
     this.editMode = false;
     const u = this.user;
-    this.form = { name: u.name||'', phone: u.phone||'', year: u.year||'', department: u.department||'' };
+    this.form = { name: u.name||'', phone: u.phone||'' };
   }
 
   show(msg: string, type: 'success'|'error'): void {

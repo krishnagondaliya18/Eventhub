@@ -9,6 +9,9 @@
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a>
       <a routerLink="/events" routerLinkActive="active">Events</a>
       <a routerLink="/contact" routerLinkActive="active">Contact</a>
+      @if (auth.isOrganizer()) {
+        <a routerLink="/organizer/events" routerLinkActive="active">Host Events</a>
+      }
       @if (auth.isAdmin()) {
         <a routerLink="/admin" routerLinkActive="active">Admin</a>
       }
@@ -25,6 +28,7 @@
           <div class="dropdown-menu" *ngIf="dropdownOpen">
             <a routerLink="/profile"  (click)="dropdownOpen=false">👤 Profile</a>
             <a routerLink="/bookings" (click)="dropdownOpen=false">🎟️ My Bookings</a>
+            <a *ngIf="auth.isOrganizer()" routerLink="/organizer/events" (click)="dropdownOpen=false">🎪 Hosted Events</a>
             <a routerLink="/feedback" (click)="dropdownOpen=false">⭐ Feedback</a>
             <a routerLink="/queries"  (click)="dropdownOpen=false">❓ Queries</a>
             <div class="drop-divider"></div>

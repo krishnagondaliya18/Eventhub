@@ -20,7 +20,7 @@ export class UsersComponent implements OnInit {
   saving = false;
   message = '';
   messageType: 'success' | 'error' = 'success';
-  form: any = { name: '', email: '', password: '', phone: '', year: '', department: '', role: 'user' };
+  form: any = { name: '', email: '', password: '', phone: '', role: 'user' };
   editingId = '';
 
   ngOnInit() { this.loadUsers(); }
@@ -34,7 +34,7 @@ export class UsersComponent implements OnInit {
   }
 
   openAdd() {
-    this.form = { name: '', email: '', password: '', phone: '', year: '', department: '', role: 'user' };
+    this.form = { name: '', email: '', password: '', phone: '', role: 'user' };
     this.editMode = false; this.showModal = true; this.message = '';
   }
 

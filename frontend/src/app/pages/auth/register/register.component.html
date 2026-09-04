@@ -21,32 +21,41 @@
           <input class="form-control" type="email" placeholder="you@example.com" [(ngModel)]="form.email">
         </div>
       </div>
-      <div class="form-group">
-        <label>Password *</label>
-        <input class="form-control" type="password" placeholder="Min 6 characters" [(ngModel)]="form.password">
-      </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Phone</label>
-          <input class="form-control" type="text" placeholder="9999999999" [(ngModel)]="form.phone">
+          <label>Password *</label>
+          <input class="form-control" type="password" placeholder="Min 6 characters" [(ngModel)]="form.password">
         </div>
         <div class="form-group">
-          <label>Department</label>
-          <input class="form-control" type="text" placeholder="e.g. CT" [(ngModel)]="form.department">
+          <label>Phone Number</label>
+          <input class="form-control" type="tel" placeholder="+91 9876543210" [(ngModel)]="form.phone">
         </div>
       </div>
+
       <div class="form-group">
-        <label>Year</label>
-        <select class="form-control" [(ngModel)]="form.year">
-          <option value="">Select Year</option>
-          <option value="1">1st Year</option>
-          <option value="2">2nd Year</option>
-          <option value="3">3rd Year</option>
-          <option value="4">4th Year</option>
-        </select>
+        <label>I want to join as *</label>
+        <div class="role-selector-grid">
+          <label class="role-card" [class.selected]="form.role === 'user'">
+            <input type="radio" name="role" value="user" [(ngModel)]="form.role" class="hidden-radio">
+            <span class="role-icon">🎟️</span>
+            <div>
+              <strong>Attendee / User</strong>
+              <p>Discover events &amp; book tickets</p>
+            </div>
+          </label>
+          <label class="role-card" [class.selected]="form.role === 'organizer'">
+            <input type="radio" name="role" value="organizer" [(ngModel)]="form.role" class="hidden-radio">
+            <span class="role-icon">🎪</span>
+            <div>
+              <strong>Event Organizer</strong>
+              <p>Host &amp; manage public events</p>
+            </div>
+          </label>
+        </div>
       </div>
+
       <button class="btn btn-primary btn-lg w-full" (click)="register()" [disabled]="loading">
-        {{ loading ? 'Creating...' : 'Create Account' }}
+        {{ loading ? 'Creating Account...' : (form.role === 'organizer' ? 'Join as Organizer' : 'Create User Account') }}
       </button>
       <p class="auth-switch">Already have an account? <a routerLink="/login">Sign in →</a></p>
     </div>

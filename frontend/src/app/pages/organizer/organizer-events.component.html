@@ -1,0 +1,206 @@
+<app-navbar></app-navbar>
+
+<div class="organizer-page-wrapper">
+  <div class="organizer-container">
+    <!-- TOP HEADER -->
+    <div class="organizer-header-row">
+      <div>
+        <span class="organizer-pill">ORGANIZER PORTAL</span>
+        <h1>My Hosted Events</h1>
+        <p class="subtitle">Create and manage your events, track ticket sales, and view Admin approval status.</p>
+      </div>
+      <button class="btn-create-event" (click)="openCreateModal()">
+        <span class="material-icons">add_circle</span> Host New Event
+      </button>
+    </div>
+
+    <!-- ADMIN APPROVAL NOTICE BANNER -->
+    <div class="approval-notice-banner">
+      <div class="banner-icon">
+        <span class="material-icons">admin_panel_settings</span>
+      </div>
+      <div class="banner-text">
+        <h4>Admin Approval Workflow</h4>
+        <p>
+          For community safety and quality standards, all new events submitted by organizers are reviewed by the <strong>Admin Team</strong> before going live. Once approved, your event will immediately appear on the Explore Events page for ticket booking!
+        </p>
+      </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-overview-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Events</span>
+        <strong class="stat-value">{{ events.length }}</strong>
+      </div>
+      <div class="stat-card stat-card-active">
+        <span class="stat-label">Active / Live</span>
+        <strong class="stat-value text-success">{{ getActiveCount() }}</strong>
+      </div>
+      <div class="stat-card stat-card-pending">
+        <span class="stat-label">Pending Approval</span>
+        <strong class="stat-value text-warning">{{ getPendingCount() }}</strong>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Revenue</span>
+        <strong class="stat-value text-primary">₹{{ getTotalRevenue() }}</strong>
+      </div>
+    </div>
+
+    <!-- ALERT MESSAGE -->
+    <div *ngIf="message" class="alert-box" [class.alert-success]="messageType === 'success'" [class.alert-error]="messageType === 'error'">
+      <span class="material-icons">{{ messageType === 'success' ? 'check_circle' : 'error_outline' }}</span>
+      <span>{{ message }}</span>
+    </div>
+
+    <!-- EVENTS LIST -->
+    <div class="events-table-card">
+      <div class="table-card-header">
+        <h3>Events Inventory</h3>
+        <button class="btn-refresh" (click)="loadMyEvents()">
+          <span class="material-icons">refresh</span> Refresh
+        </button>
+      </div>
+
+      <div *ngIf="loading" class="loading-state">
+        <div class="chk-spin"></div>
+        <p>Loading your events...</p>
+      </div>
+
+      <div *ngIf="!loading && events.length === 0" class="empty-events-state">
+        <span class="empty-icon">🎪</span>
+        <h3>No Events Created Yet</h3>
+        <p>Host your first concert, sports meet, tech workshop, or party today!</p>
+        <button class="btn-create-event-sm" (click)="openCreateModal()">+ Create Event</button>
+      </div>
+
+      <div *ngIf="!loading && events.length > 0" class="table-responsive">
+        <table class="org-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Event Title</th>
+              <th>Category</th>
+              <th>Date &amp; Time</th>
+              <th>Venue / Location</th>
+              <th>Tickets</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ev of events; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="event-title-cell">
+                  <img [src]="ev.image" alt="" class="ev-mini-thumb">
+                  <strong>{{ ev.title }}</strong>
+                </div>
+              </td>
+              <td><span class="category-chip">{{ ev.category }}</span></td>
+              <td>{{ ev.date | date:'mediumDate' }}</td>
+              <td>{{ ev.location }}</td>
+              <td>{{ ev.availableTickets }} / {{ ev.totalTickets }}</td>
+              <td>
+                <span [class.text-success]="ev.isFree" [class.text-primary]="!ev.isFree">
+                  {{ ev.isFree ? 'Free' : '₹' + ev.price }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="'status-' + ev.status">
+                  <span class="status-dot"></span>
+                  {{ ev.status === 'pending' ? 'Pending Approval' : (ev.status | titlecase) }}
+                </span>
+              </td>
+              <td>
+                <a [routerLink]="['/events', ev._id]" class="btn-view-link" *ngIf="ev.status === 'active'">
+                  View Live &rarr;
+                </a>
+                <span *ngIf="ev.status === 'pending'" class="text-muted-status">Under Review</span>
+                <span *ngIf="ev.status === 'rejected'" class="text-rejected-status">Rejected</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE EVENT MODAL -->
+<div class="modal-backdrop" *ngIf="showModal" (click)="showModal = false">
+  <div class="modal-dialog-box" (click)="$event.stopPropagation()">
+    <div class="modal-header-bar">
+      <h2>Host a New Event</h2>
+      <button class="modal-btn-close" (click)="showModal = false">&times;</button>
+    </div>
+
+    <form (ngSubmit)="submitEvent()" class="modal-form-body">
+      <div class="form-row-2">
+        <div class="form-group-item">
+          <label>Event Title <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="form.title" name="title" placeholder="e.g. Surat Live Music Festival 2026" class="modal-input" required />
+        </div>
+        <div class="form-group-item">
+          <label>Category <span class="req">*</span></label>
+          <select [(ngModel)]="form.category" name="category" class="modal-input">
+            <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group-item">
+        <label>Description <span class="req">*</span></label>
+        <textarea [(ngModel)]="form.description" name="description" rows="3" placeholder="Provide full details about the event, lineup, rules, and timings..." class="modal-input modal-textarea" required></textarea>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group-item">
+          <label>Date &amp; Time <span class="req">*</span></label>
+          <input type="datetime-local" [(ngModel)]="form.date" name="date" class="modal-input" required />
+        </div>
+        <div class="form-group-item">
+          <label>Venue / City Location <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="form.location" name="location" placeholder="e.g. Surat Indoor Stadium, Gujarat" class="modal-input" required />
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group-item">
+          <label>Ticket Price (₹)</label>
+          <input type="number" [(ngModel)]="form.price" name="price" [disabled]="form.isFree" min="0" placeholder="0" class="modal-input" />
+        </div>
+        <div class="form-group-item">
+          <label>Total Available Tickets <span class="req">*</span></label>
+          <input type="number" [(ngModel)]="form.totalTickets" name="totalTickets" min="1" placeholder="100" class="modal-input" required />
+        </div>
+      </div>
+
+      <div class="form-group-item">
+        <label>Event Banner Image URL</label>
+        <input type="url" [(ngModel)]="form.image" name="image" placeholder="https://images.unsplash.com/..." class="modal-input" />
+      </div>
+
+      <div class="form-checkbox-row">
+        <label class="check-item">
+          <input type="checkbox" [(ngModel)]="form.isFree" name="isFree" />
+          <span>Free Admission (No Ticket Fee)</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" [(ngModel)]="form.isOnline" name="isOnline" />
+          <span>Online / Virtual Event</span>
+        </label>
+      </div>
+
+      <div class="modal-actions-bar">
+        <button type="button" class="btn-modal-cancel" (click)="showModal = false">Cancel</button>
+        <button type="submit" class="btn-modal-submit" [disabled]="saving">
+          {{ saving ? 'Submitting for Approval...' : 'Submit Event for Admin Review' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<app-footer></app-footer>

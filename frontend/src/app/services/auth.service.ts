@@ -56,6 +56,8 @@ export class AuthService {
   getToken(): string | null { return localStorage.getItem('token'); }
   isLoggedIn(): boolean     { return !!this.getToken() && !!this.currentUser(); }
   isAdmin(): boolean        { return this.currentUser()?.role === 'admin'; }
+  isOrganizer(): boolean    { return this.currentUser()?.role === 'organizer'; }
+  isOrganizerOrAdmin(): boolean { return this.currentUser()?.role === 'organizer' || this.currentUser()?.role === 'admin'; }
 
   getUser(): any {
     const u = localStorage.getItem('user');

@@ -12,9 +12,11 @@ router.use(protect, adminOnly);
 // GET /api/admin/stats
 router.get('/stats', async (req, res) => {
   try {
-    const [totalUsers, totalEvents, totalParticipants, totalAdmins, feedbackCount, pendingQueries] = await Promise.all([
+    const [totalUsers, totalOrganizers, totalEvents, pendingEvents, totalParticipants, totalAdmins, feedbackCount, pendingQueries] = await Promise.all([
       User.countDocuments({ role: 'user' }),
+      User.countDocuments({ role: 'organizer' }),
       Event.countDocuments(),
+      Event.countDocuments({ status: 'pending' }),
       Participant.countDocuments(),
       User.countDocuments({ role: 'admin' }),
       Feedback.countDocuments({ type: 'feedback' }),
@@ -45,7 +47,7 @@ router.get('/stats', async (req, res) => {
 
     res.json({
       success: true,
-      stats: { totalUsers, totalEvents, totalParticipants, totalAdmins, totalRevenue, feedbackCount, pendingQueries },
+      stats: { totalUsers, totalOrganizers, totalEvents, pendingEvents, totalParticipants, totalAdmins, totalRevenue, feedbackCount, pendingQueries },
       eventsByCategory,
       monthlyData
     });
@@ -96,7 +98,7 @@ router.delete('/users/:id', async (req, res) => {
 router.get('/participants', async (req, res) => {
   try {
     const participants = await Participant.find()
-      .populate('user', 'name email phone department year')
+      .populate('user', 'name email phone role')
       .populate('event', 'title date location')
       .sort({ registeredAt: -1 });
     res.json({ success: true, participants });

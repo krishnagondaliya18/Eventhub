@@ -13,26 +13,31 @@
         <button class="btn-edit" (click)="editMode=!editMode" *ngIf="!editMode">&#9998; Edit</button>
       </div>
       <div class="info-grid" *ngIf="!editMode">
-        <div class="info-item"><label>Name</label><span>{{ user?.name||'—' }}</span></div>
-        <div class="info-item"><label>Email</label><span>{{ user?.email||'—' }}</span></div>
-        <div class="info-item"><label>Phone</label><span>{{ user?.phone||'—' }}</span></div>
-        <div class="info-item"><label>Department</label><span>{{ user?.department||'—' }}</span></div>
-        <div class="info-item"><label>Year</label><span>{{ user?.year||'—' }}</span></div>
-        <div class="info-item"><label>Role</label><span>{{ user?.role||'user' }}</span></div>
+        <div class="info-item"><label>Full Name</label><span>{{ user?.name||'—' }}</span></div>
+        <div class="info-item"><label>Email Address</label><span>{{ user?.email||'—' }}</span></div>
+        <div class="info-item"><label>Phone Number</label><span>{{ user?.phone||'—' }}</span></div>
+        <div class="info-item"><label>Account Role</label><span class="role-highlight">{{ user?.role?.toUpperCase() || 'USER' }}</span></div>
       </div>
       <div *ngIf="editMode">
         <div class="form-row">
-          <div class="form-group"><label>Name</label><input type="text" [(ngModel)]="form.name"/></div>
-          <div class="form-group"><label>Phone</label><input type="text" [(ngModel)]="form.phone"/></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Department</label><input type="text" [(ngModel)]="form.department"/></div>
-          <div class="form-group"><label>Year</label><input type="text" [(ngModel)]="form.year"/></div>
+          <div class="form-group"><label>Full Name</label><input type="text" [(ngModel)]="form.name"/></div>
+          <div class="form-group"><label>Phone Number</label><input type="text" [(ngModel)]="form.phone"/></div>
         </div>
         <div class="form-actions">
           <button class="btn-save" (click)="saveProfile()" [disabled]="saving">{{ saving?'Saving...':'Save Changes' }}</button>
           <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ORGANIZER ACTION CARD -->
+    <div class="card organizer-card" *ngIf="user?.role === 'organizer'">
+      <div class="card-header">
+        <h3>🎪 Organizer Dashboard &amp; Events</h3>
+      </div>
+      <p class="text-muted">Host new events, track ticket sales, and check admin approval status for your submissions.</p>
+      <div class="organizer-actions">
+        <a routerLink="/organizer/events" class="btn-organizer-link">Manage My Hosted Events &rarr;</a>
       </div>
     </div>
 
@@ -56,6 +61,7 @@
 
     <div class="quick-links">
       <a routerLink="/bookings" class="quick-link">&#127915; My Bookings</a>
+      <a *ngIf="user?.role === 'organizer'" routerLink="/organizer/events" class="quick-link">&#127914; Host / My Events</a>
       <a routerLink="/feedback" class="quick-link">&#11088; Feedback</a>
       <a routerLink="/queries"  class="quick-link">&#10067; Queries</a>
       <a routerLink="/events"   class="quick-link">&#127914; Browse Events</a>

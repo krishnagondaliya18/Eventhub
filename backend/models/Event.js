@@ -17,7 +17,7 @@ const eventSchema = new mongoose.Schema({
   isFree: { type: Boolean, default: false },
   totalTickets: { type: Number, default: 100 },
   availableTickets: { type: Number, default: 100 },
-  status: { type: String, enum: ['active', 'draft', 'completed', 'cancelled'], default: 'active' },
+  status: { type: String, enum: ['active', 'pending', 'rejected', 'draft', 'completed', 'cancelled'], default: 'active' },
   organizer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   tags: [String],

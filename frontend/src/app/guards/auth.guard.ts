@@ -16,3 +16,12 @@ export const adminGuard = () => {
   if (!auth.isLoggedIn()) return router.parseUrl('/login');
   return router.parseUrl('/');
 };
+
+export const organizerGuard = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (auth.isLoggedIn() && (auth.isOrganizer() || auth.isAdmin())) return true;
+  if (!auth.isLoggedIn()) return router.parseUrl('/login');
+  return router.parseUrl('/');
+};
+

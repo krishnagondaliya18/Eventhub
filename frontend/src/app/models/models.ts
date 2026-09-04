@@ -3,9 +3,7 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
-  year?: string;
-  department?: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'organizer' | 'admin';
   avatar?: string;
   isActive?: boolean;
   createdAt?: string;
@@ -25,7 +23,7 @@ export interface Event {
   isFree: boolean;
   totalTickets: number;
   availableTickets: number;
-  status: 'active' | 'draft' | 'completed' | 'cancelled';
+  status: 'active' | 'pending' | 'rejected' | 'draft' | 'completed' | 'cancelled';
   organizer?: User;
   participants?: string[];
   tags?: string[];
@@ -58,7 +56,9 @@ export interface Feedback {
 
 export interface Stats {
   totalUsers: number;
+  totalOrganizers?: number;
   totalEvents: number;
+  pendingEvents?: number;
   totalParticipants: number;
   totalAdmins: number;
   totalRevenue: number;

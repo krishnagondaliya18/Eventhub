@@ -41,7 +41,7 @@ export class ContactComponent {
 
   sendMessage(): void {
     if (!this.form.name.trim() || !this.form.email.trim() || !this.form.message.trim()) {
-      this.errorMessage = 'કૃપા કરીને નામ, ઈમેઈલ અને મેસેજ દાખલ કરો (Please fill all required fields).';
+      this.errorMessage = 'Please provide your name, email, and message.';
       return;
     }
 

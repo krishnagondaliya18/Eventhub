@@ -1,29 +1,100 @@
 <div class="page-enter">
   <div class="page-top">
-    <div><h1>Event List</h1><p class="text-muted">Manage all events</p></div>
-    <button class="btn btn-primary" (click)="openAdd()"><span class="material-icons">add</span> Create Event</button>
+    <div>
+      <h1>Event Management</h1>
+      <p class="text-muted">Review, approve, and manage all public and organizer events</p>
+    </div>
+    <button class="btn btn-primary" (click)="openAdd()">
+      <span class="material-icons">add</span> Create Event
+    </button>
   </div>
-  @if (message) { <div class="alert" [class.alert-success]="messageType==='success'" [class.alert-error]="messageType==='error'">{{ message }}</div> }
+
+  @if (message) {
+    <div class="alert" [class.alert-success]="messageType==='success'" [class.alert-error]="messageType==='error'">
+      {{ message }}
+    </div>
+  }
+
+  <!-- STATUS FILTER TABS -->
+  <div class="filter-tabs-row">
+    <button class="filter-pill" [class.active]="currentStatusFilter === 'all'" (click)="setFilter('all')">
+      All Events ({{ events.length }})
+    </button>
+    <button class="filter-pill pill-pending" [class.active]="currentStatusFilter === 'pending'" (click)="setFilter('pending')">
+      ⏳ Pending Review
+    </button>
+    <button class="filter-pill pill-active" [class.active]="currentStatusFilter === 'active'" (click)="setFilter('active')">
+      ✅ Active / Live
+    </button>
+    <button class="filter-pill" [class.active]="currentStatusFilter === 'completed'" (click)="setFilter('completed')">
+      🏁 Completed
+    </button>
+    <button class="filter-pill" [class.active]="currentStatusFilter === 'rejected'" (click)="setFilter('rejected')">
+      ❌ Rejected
+    </button>
+  </div>
+
   <div class="card">
-    @if (loading) { <div class="spinner"></div> } @else {
+    @if (loading) {
+      <div class="spinner"></div>
+    } @else {
       <div class="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Title</th><th>Category</th><th>Date</th><th>Location</th><th>Tickets</th><th>Price</th><th>Status</th><th>Action</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Title</th>
+              <th>Organizer</th>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Venue</th>
+              <th>Tickets</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
           <tbody>
             @for (ev of events; track ev._id; let i = $index) {
               <tr>
-                <td>{{ i+1 }}</td>
-                <td><div class="event-cell"><img [src]="ev.image" class="ev-thumb" alt=""><strong>{{ ev.title }}</strong></div></td>
+                <td>{{ i + 1 }}</td>
+                <td>
+                  <div class="event-cell">
+                    <img [src]="ev.image" class="ev-thumb" alt="">
+                    <strong>{{ ev.title }}</strong>
+                  </div>
+                </td>
+                <td>
+                  <span class="organizer-tag">
+                    {{ ev.organizer?.name || 'Platform Admin' }}
+                  </span>
+                </td>
                 <td><span class="badge badge-info">{{ ev.category }}</span></td>
                 <td>{{ ev.date | date:'MMM d, y' }}</td>
                 <td>{{ ev.location }}</td>
-                <td>{{ ev.availableTickets }}/{{ ev.totalTickets }}</td>
-                <td><span [class]="ev.isFree ? 'text-success' : 'text-primary'">{{ ev.isFree ? 'Free' : '₹'+ev.price }}</span></td>
-                <td><span class="badge" [class.badge-success]="ev.status==='active'" [class.badge-warning]="ev.status==='draft'">{{ ev.status }}</span></td>
+                <td>{{ ev.availableTickets }} / {{ ev.totalTickets }}</td>
+                <td><span [class]="ev.isFree ? 'text-success' : 'text-primary'">{{ ev.isFree ? 'Free' : '₹' + ev.price }}</span></td>
+                <td>
+                  <span class="badge"
+                    [class.badge-success]="ev.status==='active'"
+                    [class.badge-warning]="ev.status==='pending'"
+                    [class.badge-danger]="ev.status==='rejected'"
+                    [class.badge-secondary]="ev.status==='completed' || ev.status==='draft'">
+                    {{ ev.status === 'pending' ? 'Pending Approval' : (ev.status | titlecase) }}
+                  </span>
+                </td>
                 <td>
                   <div class="action-btns">
-                    <button class="btn btn-sm" style="background:#17a2b8;color:#fff" (click)="openEdit(ev)">Edit</button>
-                    <button class="btn btn-sm" style="background:#dc3545;color:#fff" (click)="delete(ev._id)">Delete</button>
+                    @if (ev.status === 'pending') {
+                      <button class="btn btn-sm btn-approve" (click)="approveEvent(ev._id)" title="Approve and make live">
+                        ✓ Approve
+                      </button>
+                      <button class="btn btn-sm btn-reject" (click)="rejectEvent(ev._id)" title="Reject event">
+                        ✕ Reject
+                      </button>
+                    }
+                    <button class="btn btn-sm btn-edit-act" (click)="openEdit(ev)">Edit</button>
+                    <button class="btn btn-sm btn-del-act" (click)="delete(ev._id)">Delete</button>
                   </div>
                 </td>
               </tr>
@@ -55,7 +126,7 @@
         <div class="form-group"><label>Description *</label><textarea class="form-control" rows="3" [(ngModel)]="form.description" placeholder="Event description..."></textarea></div>
         <div class="form-row">
           <div class="form-group"><label>Date & Time *</label><input class="form-control" type="datetime-local" [(ngModel)]="form.date"></div>
-          <div class="form-group"><label>Location *</label><input class="form-control" [(ngModel)]="form.location" placeholder="e.g. New York, NY"></div>
+          <div class="form-group"><label>Location *</label><input class="form-control" [(ngModel)]="form.location" placeholder="e.g. Surat, Gujarat"></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label>Price (₹)</label><input class="form-control" type="number" [(ngModel)]="form.price"></div>
@@ -65,7 +136,12 @@
         <div class="form-row">
           <div class="form-group"><label>Status</label>
             <select class="form-control" [(ngModel)]="form.status">
-              <option value="active">Active</option><option value="draft">Draft</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option>
+              <option value="active">Active (Approved)</option>
+              <option value="pending">Pending Review</option>
+              <option value="rejected">Rejected</option>
+              <option value="draft">Draft</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
             </select>
           </div>
           <div class="form-group check-group">

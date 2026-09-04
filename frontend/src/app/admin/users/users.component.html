@@ -1,11 +1,11 @@
 <div class="page-enter">
   <div class="page-top">
     <div>
-      <h1>Users</h1>
-      <p class="text-muted">Manage all registered users</p>
+      <h1>Users &amp; Organizers</h1>
+      <p class="text-muted">Manage all registered attendees, organizers, and platform administrators</p>
     </div>
     <button class="btn btn-primary" (click)="openAdd()">
-      <span class="material-icons">person_add</span> Add New
+      <span class="material-icons">person_add</span> Add New User
     </button>
   </div>
 
@@ -21,19 +21,34 @@
         <table>
           <thead>
             <tr>
-              <th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Year</th><th>Department</th><th>Role</th><th>Action</th>
+              <th>#</th>
+              <th>Full Name</th>
+              <th>Email Address</th>
+              <th>Phone</th>
+              <th>Account Role</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             @for (user of users; track user._id; let i = $index) {
               <tr>
                 <td>{{ i + 1 }}</td>
-                <td><div class="user-cell"><div class="mini-avatar">{{ user.name.charAt(0).toUpperCase() }}</div>{{ user.name }}</div></td>
+                <td>
+                  <div class="user-cell">
+                    <div class="mini-avatar">{{ user.name.charAt(0).toUpperCase() }}</div>
+                    <strong>{{ user.name }}</strong>
+                  </div>
+                </td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.phone || '—' }}</td>
-                <td>{{ user.year || '—' }}</td>
-                <td>{{ user.department || '—' }}</td>
-                <td><span class="badge" [class.badge-primary]="user.role==='admin'" [class.badge-info]="user.role==='user'">{{ user.role }}</span></td>
+                <td>
+                  <span class="badge"
+                    [class.badge-primary]="user.role==='admin'"
+                    [class.badge-warning]="user.role==='organizer'"
+                    [class.badge-info]="user.role==='user'">
+                    {{ user.role | titlecase }}
+                  </span>
+                </td>
                 <td>
                   <div class="action-btns">
                     <button class="btn btn-sm" style="background:#17a2b8;color:#fff" (click)="openEdit(user)">Edit</button>
@@ -62,26 +77,20 @@
           <div class="form-group"><label>Full Name *</label><input class="form-control" [(ngModel)]="form.name" placeholder="John Doe"></div>
           <div class="form-group"><label>Email *</label><input class="form-control" type="email" [(ngModel)]="form.email" placeholder="email@example.com"></div>
         </div>
-        <div class="form-group"><label>Password {{ editMode ? '(leave blank to keep)' : '*' }}</label><input class="form-control" type="password" [(ngModel)]="form.password" placeholder="••••••••"></div>
+        <div class="form-group"><label>Password {{ editMode ? '(leave blank to keep current)' : '*' }}</label><input class="form-control" type="password" [(ngModel)]="form.password" placeholder="••••••••"></div>
         <div class="form-row">
-          <div class="form-group"><label>Phone</label><input class="form-control" [(ngModel)]="form.phone" placeholder="9999999999"></div>
-          <div class="form-group"><label>Department</label><input class="form-control" [(ngModel)]="form.department" placeholder="e.g. CT"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Year</label>
-            <select class="form-control" [(ngModel)]="form.year">
-              <option value="">Select</option><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option>
-            </select>
-          </div>
-          <div class="form-group"><label>Role</label>
+          <div class="form-group"><label>Phone Number</label><input class="form-control" [(ngModel)]="form.phone" placeholder="+91 9876543210"></div>
+          <div class="form-group"><label>Account Role *</label>
             <select class="form-control" [(ngModel)]="form.role">
-              <option value="user">User</option><option value="admin">Admin</option>
+              <option value="user">User (Attendee)</option>
+              <option value="organizer">Organizer (Event Host)</option>
+              <option value="admin">Platform Admin</option>
             </select>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" (click)="showModal=false">Cancel</button>
-          <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+          <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{ saving ? 'Saving...' : 'Save User' }}</button>
         </div>
       </div>
     </div>
