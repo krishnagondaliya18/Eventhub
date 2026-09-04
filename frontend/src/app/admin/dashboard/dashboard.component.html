@@ -7,6 +7,22 @@
   @if (loading) {
     <div class="spinner"></div>
   } @else {
+    <!-- PENDING APPROVAL ALERT BANNER -->
+    @if ((stats?.pendingEvents || 0) > 0) {
+      <div class="pending-alert-banner">
+        <div class="banner-icon-bubble">
+          <span class="material-icons">notifications_active</span>
+        </div>
+        <div class="banner-content-box">
+          <h3>{{ stats?.pendingEvents }} Event(s) Awaiting Your Review</h3>
+          <p>Organizers have submitted new events that need Admin approval before going live to attendees.</p>
+        </div>
+        <a routerLink="/admin/event-list" [queryParams]="{ filter: 'pending' }" class="btn-review-now">
+          Review &amp; Approve &rarr;
+        </a>
+      </div>
+    }
+
     <!-- Stat Cards -->
     <div class="stats-grid">
       @for (card of statCards; track card.key) {

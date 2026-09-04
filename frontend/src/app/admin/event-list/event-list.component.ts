@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { EventService } from '../../services/event.service';
 import { Event } from '../../models/models';
 
@@ -14,6 +15,7 @@ import { Event } from '../../models/models';
 })
 export class EventListComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
   eventService = inject(EventService);
 
   events: Event[] = [];
@@ -36,9 +38,14 @@ export class EventListComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
-    this.loadEvents();
-    // Auto-refresh every 15 seconds
-    this.refreshInterval = setInterval(() => this.loadEvents(), 15000);
+    this.route.queryParams.subscribe(params => {
+      if (params['filter']) {
+        this.currentStatusFilter = params['filter'];
+      }
+      this.loadEvents();
+    });
+    // Auto-refresh every 10 seconds
+    this.refreshInterval = setInterval(() => this.loadEvents(), 10000);
   }
 
   ngOnDestroy() {
