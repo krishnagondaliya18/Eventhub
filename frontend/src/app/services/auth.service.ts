@@ -46,6 +46,18 @@ export class AuthService {
     );
   }
 
+  loginWithGoogle(data: { email: string; name?: string; avatar?: string; role?: string }): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/google`, data).pipe(
+      tap(res => {
+        if (res.success) {
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('user', JSON.stringify(res.user));
+          this.currentUser.set(res.user);
+        }
+      })
+    );
+  }
+
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

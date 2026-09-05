@@ -39,6 +39,38 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// POST /api/auth/google — Google Sign-In & Sign-Up
+router.post('/google', async (req, res) => {
+  try {
+    const { email, name, avatar, role } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Google email is required' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    let user = await User.findOne({ email: cleanEmail });
+
+    if (!user) {
+      // Auto-register via Google Sign-In
+      const assignedRole = role === 'organizer' ? 'organizer' : 'user';
+      const randomPass = Math.random().toString(36).slice(-10) + 'Aa1!';
+      user = await User.create({
+        name: (name || cleanEmail.split('@')[0]).trim(),
+        email: cleanEmail,
+        password: randomPass,
+        role: assignedRole,
+        avatar: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random`,
+        phone: ''
+      });
+    }
+
+    const token = signToken(user._id);
+    res.json({ success: true, token, user: user.toJSON() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // GET /api/auth/me
 router.get('/me', protect, async (req, res) => {
   res.json({ success: true, user: req.user });

@@ -17,6 +17,10 @@ export class LoginComponent {
   email = '';
   password = '';
   loading = false;
+  googleLoading = false;
+  showGoogleModal = false;
+  googleEmail = '';
+  googleName = '';
   error = '';
 
   login() {
@@ -31,6 +35,45 @@ export class LoginComponent {
       error: (err) => {
         this.error = err.error?.message || 'Login failed. Check credentials.';
         this.loading = false;
+      }
+    });
+  }
+
+  openGoogleModal() {
+    this.showGoogleModal = true;
+    this.error = '';
+  }
+
+  closeGoogleModal() {
+    this.showGoogleModal = false;
+  }
+
+  signInWithGoogle(accountEmail?: string, accountName?: string) {
+    const selectedEmail = (accountEmail || this.googleEmail).trim();
+    const selectedName  = (accountName || this.googleName || selectedEmail.split('@')[0]).trim();
+
+    if (!selectedEmail || !selectedEmail.includes('@')) {
+      this.error = 'Please provide a valid Google email address.';
+      return;
+    }
+
+    this.googleLoading = true;
+    this.error = '';
+
+    this.auth.loginWithGoogle({
+      email: selectedEmail,
+      name: selectedName
+    }).subscribe({
+      next: (res: any) => {
+        this.googleLoading = false;
+        this.showGoogleModal = false;
+        if (res.user?.role === 'admin') this.router.navigate(['/admin']);
+        else if (res.user?.role === 'organizer') this.router.navigate(['/organizer/events']);
+        else this.router.navigate(['/']);
+      },
+      error: (err) => {
+        this.googleLoading = false;
+        this.error = err.error?.message || 'Google sign-in failed. Please try again.';
       }
     });
   }
