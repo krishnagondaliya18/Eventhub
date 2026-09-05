@@ -20,6 +20,7 @@ app.use('/api/feedback', require('./routes/feedback.routes'));
 app.use('/api/queries',  require('./routes/queries.routes'));
 app.use('/api/bookings', require('./routes/booking.routes'));
 app.use('/api/comments', require('./routes/comment.routes'));
+app.use('/api/ai',       require('./routes/ai.routes'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'EventHub API running' }));

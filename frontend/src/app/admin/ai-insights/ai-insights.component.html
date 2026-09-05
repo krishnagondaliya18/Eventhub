@@ -1,0 +1,188 @@
+<div class="page-enter">
+  <!-- TOP HEADER -->
+  <div class="ai-header-bar">
+    <div>
+      <div class="ai-badge-top">
+        <span class="material-icons sparkle-icon">auto_awesome</span>
+        <span>POWERED BY GOOGLE GEMINI</span>
+      </div>
+      <h1 class="ai-main-title">Admin AI Intelligence &amp; Revenue Insights</h1>
+      <p class="ai-sub-desc">
+        Real-time revenue breakdown, event popularity trends, and smart growth suggestions for platform organizers.
+      </p>
+    </div>
+
+    <div class="ai-header-actions">
+      <button class="btn-refresh-ai" (click)="generateInsights()" [disabled]="loading || customPromptLoading">
+        <span class="material-icons" [class.spin-anim]="loading">sync</span>
+        <span>{{ loading ? 'Analyzing Data...' : 'Re-run AI Analysis' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- METRICS CARDS -->
+  <div class="stats-ai-grid">
+    <div class="stat-ai-card revenue-card">
+      <div class="stat-icon-wrap rev-icon">
+        <span class="material-icons">payments</span>
+      </div>
+      <div class="stat-details">
+        <span class="stat-lbl">Gross Platform Revenue</span>
+        <h2 class="stat-val">₹{{ stats.totalRevenue | number }}</h2>
+        <span class="stat-sub-badge"><span class="material-icons">trending_up</span> Razorpay Verified</span>
+      </div>
+    </div>
+
+    <div class="stat-ai-card tickets-card">
+      <div class="stat-icon-wrap tkt-icon">
+        <span class="material-icons">confirmation_number</span>
+      </div>
+      <div class="stat-details">
+        <span class="stat-lbl">Total Tickets Sold</span>
+        <h2 class="stat-val">{{ stats.totalTicketsSold }}</h2>
+        <span class="stat-sub-badge">{{ stats.totalBookings }} Confirmed Bookings</span>
+      </div>
+    </div>
+
+    <div class="stat-ai-card events-card">
+      <div class="stat-icon-wrap evt-icon">
+        <span class="material-icons">event</span>
+      </div>
+      <div class="stat-details">
+        <span class="stat-lbl">Live Catalog Events</span>
+        <h2 class="stat-val">{{ stats.totalEvents }}</h2>
+        <span class="stat-sub-badge">{{ stats.categoryBreakdown.length }} Distinct Categories</span>
+      </div>
+    </div>
+
+    <div class="stat-ai-card ai-status-card">
+      <div class="stat-icon-wrap spark-icon">
+        <span class="material-icons">psychology</span>
+      </div>
+      <div class="stat-details">
+        <span class="stat-lbl">AI Reasoning Status</span>
+        <h2 class="stat-val live-val">Active</h2>
+        <span class="stat-sub-badge" *ngIf="lastGeneratedTime">
+          Updated {{ lastGeneratedTime | date:'shortTime' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN DUAL-COLUMN GRID -->
+  <div class="ai-layout-grid">
+    <!-- LEFT: GENERATED AI EXECUTIVE REPORT -->
+    <div class="ai-report-col">
+      <div class="ai-report-card">
+        <div class="report-card-header">
+          <div class="report-title-flex">
+            <span class="material-icons">insights</span>
+            <h3>Executive AI Intelligence Report</h3>
+          </div>
+          <span class="model-pill">Gemini 1.5</span>
+        </div>
+
+        <div class="report-content-body">
+          @if (loading) {
+            <div class="ai-loading-state">
+              <div class="ai-spinner"></div>
+              <h4>Analyzing platform bookings, revenue, and attendee demand...</h4>
+              <p>Gemini is aggregating real-time data from MongoDB.</p>
+            </div>
+          } @else {
+            <div class="markdown-rendered-view" [innerHTML]="renderMarkdown(aiReportMarkdown)"></div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: POPULAR EVENTS & CATEGORY PERFORMANCE -->
+    <div class="ai-sidebar-col">
+      <!-- POPULAR EVENTS -->
+      <div class="ai-side-card">
+        <div class="side-card-title">
+          <span class="material-icons">whatshot</span>
+          <h4>Popular &amp; High Demand Events</h4>
+        </div>
+
+        <div class="side-events-list">
+          @for (item of stats.popularEvents; track item.title) {
+            <div class="side-event-item">
+              <div class="event-meta-top">
+                <strong class="evt-title">{{ item.title }}</strong>
+                <span class="evt-cat-badge">{{ item.category }}</span>
+              </div>
+              <div class="event-sales-bar-wrap">
+                <div class="bar-labels">
+                  <span>Tickets: {{ item.ticketsSold }} / {{ item.totalCapacity }}</span>
+                  <span class="evt-price">{{ item.price === 0 ? 'FREE' : ('₹' + item.price) }}</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill" [style.width.%]="item.totalCapacity > 0 ? ((item.ticketsSold / item.totalCapacity) * 100) : 0"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- CATEGORY DEMAND -->
+      <div class="ai-side-card">
+        <div class="side-card-title">
+          <span class="material-icons">pie_chart</span>
+          <h4>Category Demand &amp; Avg Ticket Price</h4>
+        </div>
+
+        <div class="cat-demand-list">
+          @for (cat of stats.categoryBreakdown; track cat.category) {
+            <div class="cat-demand-row">
+              <div class="cat-name-box">
+                <span class="cat-dot"></span>
+                <strong>{{ cat.category }}</strong>
+              </div>
+              <div class="cat-stats-box">
+                <span class="cat-count">{{ cat.eventsCount }} events</span>
+                <span class="cat-avg">Avg ₹{{ cat.avgPrice }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE ADMIN AI QUERY BAR -->
+  <div class="ask-admin-ai-section">
+    <div class="ask-ai-header">
+      <span class="material-icons">forum</span>
+      <div>
+        <h3>Ask Admin AI Custom Intelligence</h3>
+        <p>Inquire about category performance, ticket sales optimization, organizer recommendations, or growth strategies.</p>
+      </div>
+    </div>
+
+    <!-- CHIPS -->
+    <div class="prompt-chips-row">
+      @for (prompt of suggestedQuestions; track prompt) {
+        <button class="ai-chip-item" (click)="generateInsights(prompt)" [disabled]="loading || customPromptLoading">
+          <span class="material-icons">bolt</span> {{ prompt }}
+        </button>
+      }
+    </div>
+
+    <div class="custom-query-form">
+      <input
+        type="text"
+        [(ngModel)]="customQuestion"
+        placeholder="e.g. How can we increase ticket sales for comedy events? What are our peak days?"
+        class="custom-query-input"
+        [disabled]="loading || customPromptLoading"
+      />
+      <button class="btn-submit-query" (click)="generateInsights()" [disabled]="!customQuestion.trim() || loading || customPromptLoading">
+        <span class="material-icons" *ngIf="!customPromptLoading">auto_awesome</span>
+        <span class="btn-spinner" *ngIf="customPromptLoading"></span>
+        <span>{{ customPromptLoading ? 'Generating...' : 'Analyze with AI' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

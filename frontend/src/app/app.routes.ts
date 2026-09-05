@@ -32,7 +32,8 @@ export const routes: Routes = [
       { path: 'event-list',  loadComponent: () => import('./admin/event-list/event-list.component').then(m => m.EventListComponent) },
       { path: 'participants',loadComponent: () => import('./admin/participants/participants.component').then(m => m.ParticipantsComponent) },
       { path: 'feedback',    loadComponent: () => import('./admin/feedback/feedback.component').then(m => m.FeedbackComponent) },
-      { path: 'queries',     loadComponent: () => import('./admin/queries/queries.component').then(m => m.QueriesComponent) }
+      { path: 'queries',     loadComponent: () => import('./admin/queries/queries.component').then(m => m.QueriesComponent) },
+      { path: 'ai-insights', loadComponent: () => import('./admin/ai-insights/ai-insights.component').then(m => m.AiInsightsComponent) }
     ]
   },
   { path: '**', redirectTo: '' }

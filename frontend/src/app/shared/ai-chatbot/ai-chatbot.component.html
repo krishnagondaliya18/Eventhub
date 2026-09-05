@@ -1,0 +1,99 @@
+<!-- FLOATING AI TRIGGER BUTTON -->
+<div class="ai-trigger-wrapper" *ngIf="!isOpen">
+  <button class="ai-trigger-btn" (click)="toggleChat()" title="Ask EventHub AI">
+    <span class="material-icons trigger-icon">auto_awesome</span>
+    <span class="trigger-label">Ask AI</span>
+    <span class="trigger-pulse"></span>
+  </button>
+</div>
+
+<!-- CHATBOT WINDOW -->
+<div class="ai-chat-window" [class.open]="isOpen" [class.minimized]="isMinimized" *ngIf="isOpen">
+  <!-- HEADER -->
+  <div class="ai-chat-header" (click)="isMinimized = !isMinimized">
+    <div class="ai-header-left">
+      <div class="ai-avatar-ring">
+        <span class="material-icons">auto_awesome</span>
+      </div>
+      <div>
+        <h4 class="ai-header-title">EventHub AI</h4>
+        <span class="ai-header-status">
+          <span class="status-dot"></span> Live Concierge
+        </span>
+      </div>
+    </div>
+
+    <div class="ai-header-actions" (click)="$event.stopPropagation()">
+      <button class="ai-hbtn" (click)="clearChat()" title="Clear Chat">
+        <span class="material-icons">delete_sweep</span>
+      </button>
+      <button class="ai-hbtn" (click)="minimizeChat($event)" title="Minimize">
+        <span class="material-icons">{{ isMinimized ? 'expand_less' : 'expand_more' }}</span>
+      </button>
+      <button class="ai-hbtn close-btn" (click)="toggleChat()" title="Close">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- BODY (HIDDEN IF MINIMIZED) -->
+  <div class="ai-chat-body" id="ai-chat-body" *ngIf="!isMinimized">
+    <!-- QUICK SUGGESTIONS -->
+    <div class="ai-quick-prompts-bar">
+      <span class="quick-title">Suggested:</span>
+      <div class="quick-scroll">
+        @for (item of quickPrompts; track item.label) {
+          <button class="quick-chip-btn" (click)="sendQuickPrompt(item.prompt)">
+            {{ item.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- MESSAGES LIST -->
+    <div class="ai-messages-flow">
+      @for (msg of messages; track $index) {
+        <div class="ai-msg-row" [class.user-row]="msg.sender === 'user'" [class.ai-row]="msg.sender === 'ai'">
+          <div class="ai-msg-avatar" *ngIf="msg.sender === 'ai'">
+            <span class="material-icons">smart_toy</span>
+          </div>
+
+          <div class="ai-msg-bubble">
+            <div class="ai-msg-content" [innerHTML]="renderMarkdown(msg.text)" (click)="handleMessageClick($event)"></div>
+            <span class="ai-msg-time">{{ msg.time }}</span>
+          </div>
+        </div>
+      }
+
+      <!-- TYPING INDICATOR -->
+      <div class="ai-msg-row ai-row" *ngIf="isLoading">
+        <div class="ai-msg-avatar">
+          <span class="material-icons">smart_toy</span>
+        </div>
+        <div class="ai-msg-bubble typing-bubble">
+          <div class="typing-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER / INPUT BAR (HIDDEN IF MINIMIZED) -->
+  <div class="ai-chat-footer" *ngIf="!isMinimized">
+    <form (ngSubmit)="sendMessage()" class="ai-input-form">
+      <input
+        type="text"
+        [(ngModel)]="inputMessage"
+        name="inputMessage"
+        placeholder="Ask about events, booking, refunds (En / ગુજ)..."
+        class="ai-input-field"
+        autocomplete="off"
+        [disabled]="isLoading"
+      />
+      <button type="submit" class="ai-send-btn" [disabled]="!inputMessage.trim() || isLoading" title="Send">
+        <span class="material-icons">send</span>
+      </button>
+    </form>
+  </div>
+</div>

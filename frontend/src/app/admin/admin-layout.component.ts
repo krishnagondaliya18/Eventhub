@@ -24,7 +24,8 @@ export class AdminLayoutComponent implements OnInit {
     { path: '/admin/event-list', icon: 'event', label: 'Events', badgeKey: 'events' },
     { path: '/admin/participants', icon: 'group', label: 'Participants', badgeKey: '' },
     { path: '/admin/feedback', icon: 'star', label: 'Feedback', badgeKey: '' },
-    { path: '/admin/queries', icon: 'help', label: 'Queries', badgeKey: 'queries' }
+    { path: '/admin/queries', icon: 'help', label: 'Queries', badgeKey: 'queries' },
+    { path: '/admin/ai-insights', icon: 'auto_awesome', label: 'AI Insights', badgeKey: '' }
   ];
 
   ngOnInit() {
