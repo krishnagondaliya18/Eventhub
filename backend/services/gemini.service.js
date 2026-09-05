@@ -5,12 +5,10 @@ const User = require('../models/User');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
-/**
- * Returns an instance of Google Generative AI if key is present
- */
 function getGenAI() {
-  if (!GEMINI_API_KEY) return null;
-  return new GoogleGenerativeAI(GEMINI_API_KEY);
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  return new GoogleGenerativeAI(apiKey);
 }
 
 /**
@@ -109,37 +107,50 @@ async function fallbackChatResponse(message, role) {
   return `Hello! 👋 I am your **EventHub AI Assistant**. I can help you with:\n- **Finding & Recommending Events** (Sports, Music, Tech, Comedy, etc.)\n- **Booking & Ticket Support** (Razorpay payment, QR code entry)\n- **Refund & Cancellation Policies**\n- **Organizer Event Hosting & Guidance**\n\nHow can I help you today? Feel free to ask in English or ગુજરાતી!`;
 }
 
+function withTimeout(promise, ms = 12000) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`AI request timed out after ${ms}ms`)), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+}
+
 /**
  * Main AI Chat handler for Users and Organizers
  */
 async function chatWithAI({ message, history = [], role = 'user' }) {
   const genAI = getGenAI();
   if (!genAI) {
-    // Fallback response with live database data
     return await fallbackChatResponse(message, role);
   }
 
   try {
-    const systemPrompt = await buildPlatformContext();
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      systemInstruction: systemPrompt
-    });
+    const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-pro', 'gemini-3.5-flash'];
+    for (const modelName of candidateModels) {
+      try {
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          systemInstruction: systemPrompt
+        });
 
-    // Format previous history for Gemini chat if present
-    const chat = model.startChat({
-      history: (history || []).map(h => ({
-        role: h.role === 'user' ? 'user' : 'model',
-        parts: [{ text: h.text }]
-      }))
-    });
+        const chat = model.startChat({
+          history: (history || []).map(h => ({
+            role: h.role === 'user' ? 'user' : 'model',
+            parts: [{ text: h.text }]
+          }))
+        });
 
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    return response.text();
+        const result = await withTimeout(chat.sendMessage(message), 10000);
+        const response = await result.response;
+        return response.text();
+      } catch (err) {
+        console.warn(`[GEMINI RETRY] ${modelName} error: ${err.message}. Trying next model...`);
+      }
+    }
+    // Fallback to domain engine if all models busy
+    return await fallbackChatResponse(message, role);
   } catch (error) {
     console.error('[GEMINI API ERROR]', error.message);
-    // Graceful fallback to domain engine
     return await fallbackChatResponse(message, role);
   }
 }
@@ -216,7 +227,7 @@ async function generateAdminInsights({ customPrompt = '' } = {}) {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
     const prompt = `
 You are the Chief Analytics Officer AI for EventHub. Analyze the following live platform data and generate an executive report:
 
@@ -234,7 +245,7 @@ FORMAT YOUR RESPONSE IN CLEAN MARKDOWN WITH:
 Keep numbers accurate to the provided metrics.
 `;
 
-    const result = await model.generateContent(prompt);
+    const result = await withTimeout(model.generateContent(prompt), 15000);
     const response = await result.response;
 
     return {
