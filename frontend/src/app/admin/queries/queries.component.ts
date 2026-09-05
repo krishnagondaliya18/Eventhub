@@ -14,19 +14,46 @@ export class QueriesComponent implements OnInit {
   adminService = inject(AdminService);
   queries: Feedback[] = [];
   loading = true;
+  selectedQuery: Feedback | null = null;
 
   ngOnInit() {
+    this.loadQueries();
+  }
+
+  loadQueries() {
+    this.loading = true;
     this.adminService.getFeedback('query').subscribe({
-      next: (res: any) => { this.queries = res.items || []; this.loading = false; },
-      error: () => { this.loading = false; }
+      next: (res: any) => {
+        this.queries = res.items || [];
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      }
     });
   }
 
   markResolved(id: string) {
     this.adminService.updateFeedback(id, { status: 'resolved' }).subscribe({
-      next: () => { const q = this.queries.find(q => q._id === id); if (q) q.status = 'resolved'; }
+      next: () => {
+        const q = this.queries.find(item => item._id === id);
+        if (q) q.status = 'resolved';
+        if (this.selectedQuery && this.selectedQuery._id === id) {
+          this.selectedQuery.status = 'resolved';
+        }
+      }
     });
   }
 
-  get pending() { return this.queries.filter(q => q.status === 'pending').length; }
+  viewDetails(query: Feedback) {
+    this.selectedQuery = query;
+  }
+
+  closeDetails() {
+    this.selectedQuery = null;
+  }
+
+  get pending() {
+    return this.queries.filter(q => q.status === 'pending').length;
+  }
 }

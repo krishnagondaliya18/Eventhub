@@ -46,10 +46,13 @@ export interface Feedback {
   _id: string;
   name: string;
   email: string;
+  phone?: string;
+  subject?: string;
   message: string;
   rating: number;
   type: 'feedback' | 'query';
   status: 'pending' | 'resolved';
+  adminReply?: string;
   event?: Event;
   createdAt: string;
 }

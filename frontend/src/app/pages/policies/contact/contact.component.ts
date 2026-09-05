@@ -48,21 +48,24 @@ export class ContactComponent {
     this.submitting = true;
     this.errorMessage = '';
 
-    // Connect to queries API or simulated support confirmation
-    this.http.post<any>('/api/queries', {
-      subject: this.form.subject || 'General Contact Inquiry',
-      message: `[From: ${this.form.name} | Phone: ${this.form.phone || 'N/A'} | Email: ${this.form.email}]\n\n${this.form.message}`
-    }).subscribe({
+    const payload = {
+      name: this.form.name.trim(),
+      email: this.form.email.trim(),
+      phone: this.form.phone.trim(),
+      subject: this.form.subject.trim() || 'General Contact Inquiry',
+      message: this.form.message.trim(),
+      category: 'Contact Us'
+    };
+
+    this.http.post<any>('/api/queries/contact', payload).subscribe({
       next: () => {
         this.submitting = false;
         this.submitted = true;
         this.form = { name: '', email: '', phone: '', subject: '', message: '' };
       },
-      error: () => {
-        // Even if user is not logged in for query API, acknowledge message submission
+      error: (err) => {
         this.submitting = false;
-        this.submitted = true;
-        this.form = { name: '', email: '', phone: '', subject: '', message: '' };
+        this.errorMessage = err?.error?.message || 'Failed to send message. Please check your details and try again.';
       }
     });
   }

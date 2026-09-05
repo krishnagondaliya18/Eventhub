@@ -1,36 +1,150 @@
 <div class="page-enter">
-  <div class="page-top">
-    <div><h1>Queries</h1><p class="text-muted">{{ pending }} pending queries</p></div>
+  <div class="page-top" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+      <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800;">Customer Inquiries &amp; Messages</h1>
+      <p class="text-muted" style="margin: 4px 0 0 0;">
+        <span class="badge badge-warning" style="font-size: 12px; padding: 3px 8px; margin-right: 6px;">{{ pending }} Pending</span>
+        Total {{ queries.length }} customer messages received
+      </p>
+    </div>
+    <div>
+      <button class="btn btn-outline" (click)="loadQueries()" style="display: flex; align-items: center; gap: 6px;">
+        <span class="material-icons" style="font-size: 18px;">refresh</span> Refresh
+      </button>
+    </div>
   </div>
+
   <div class="card">
-    @if (loading) { <div class="spinner"></div> } @else {
+    @if (loading) {
+      <div class="center-pad"><div class="spinner"></div></div>
+    } @else {
       <div class="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Message</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Sender</th>
+              <th>Phone</th>
+              <th>Subject</th>
+              <th>Message Preview</th>
+              <th>Received</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
           <tbody>
             @for (q of queries; track q._id; let i = $index) {
               <tr>
-                <td>{{ i+1 }}</td>
-                <td><strong>{{ q.name }}</strong></td>
-                <td>{{ q.email }}</td>
-                <td class="msg-cell">{{ q.message | slice:0:80 }}{{ q.message.length > 80 ? '...' : '' }}</td>
-                <td>{{ q.createdAt | date:'MMM d, y' }}</td>
-                <td><span class="badge" [class.badge-success]="q.status==='resolved'" [class.badge-warning]="q.status==='pending'">{{ q.status }}</span></td>
+                <td>{{ i + 1 }}</td>
                 <td>
-                  @if (q.status === 'pending') {
-                    <button class="btn btn-sm btn-primary" (click)="markResolved(q._id)">Resolve</button>
+                  <strong>{{ q.name }}</strong>
+                  <div style="font-size: 12px; color: var(--text-muted, #888);">
+                    <a [href]="'mailto:' + q.email" style="color: inherit; text-decoration: underline;">{{ q.email }}</a>
+                  </div>
+                </td>
+                <td>
+                  @if (q.phone) {
+                    <span style="font-size: 13px; font-weight: 500;">{{ q.phone }}</span>
                   } @else {
-                    <span class="text-success" style="font-size:13px">Done</span>
+                    <span style="color: #999; font-size: 12px;">N/A</span>
+                  }
+                </td>
+                <td>
+                  <span class="cat-badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-weight: 600;">
+                    {{ q.subject || 'General Inquiry' }}
+                  </span>
+                </td>
+                <td class="msg-cell" style="max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  {{ q.message }}
+                </td>
+                <td style="font-size: 13px; white-space: nowrap;">{{ q.createdAt | date:'MMM d, y, h:mm a' }}</td>
+                <td>
+                  <span class="badge" [class.badge-success]="q.status === 'resolved'" [class.badge-warning]="q.status === 'pending'">
+                    {{ q.status === 'resolved' ? 'Resolved' : 'Pending' }}
+                  </span>
+                </td>
+                <td style="white-space: nowrap;">
+                  <button class="btn btn-sm" style="background: #f1f5f9; color: #1e293b; margin-right: 6px; font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 1px solid #cbd5e1; cursor: pointer;" (click)="viewDetails(q)">
+                    View
+                  </button>
+                  @if (q.status === 'pending') {
+                    <button class="btn btn-sm btn-primary" style="font-size: 12px; padding: 4px 10px; border-radius: 6px;" (click)="markResolved(q._id)">
+                      Resolve
+                    </button>
+                  } @else {
+                    <span class="text-success" style="font-size: 12px; font-weight: 600;">Done</span>
                   }
                 </td>
               </tr>
             }
           </tbody>
         </table>
+
         @if (queries.length === 0) {
-          <div class="empty-state"><span style="font-size:48px">💬</span><h3>No queries yet</h3></div>
+          <div class="empty-state">
+            <span style="font-size: 48px">💬</span>
+            <h3 style="margin-top: 12px;">No inquiries found</h3>
+            <p class="text-muted">Messages sent from the Contact Us form will appear here in real-time.</p>
+          </div>
         }
       </div>
     }
   </div>
+
+  <!-- DETAILS MODAL -->
+  @if (selectedQuery) {
+    <div class="query-modal-backdrop" (click)="closeDetails()">
+      <div class="query-modal-card" (click)="$event.stopPropagation()">
+        <div class="query-modal-header">
+          <div>
+            <span class="cat-badge">{{ selectedQuery.subject || 'Inquiry' }}</span>
+            <h3 style="margin: 6px 0 0 0;">Inquiry from {{ selectedQuery.name }}</h3>
+          </div>
+          <button class="close-modal-btn" (click)="closeDetails()">&times;</button>
+        </div>
+
+        <div class="query-modal-body">
+          <div class="modal-info-grid">
+            <div>
+              <label>Email Address</label>
+              <div><a [href]="'mailto:' + selectedQuery.email">{{ selectedQuery.email }}</a></div>
+            </div>
+            <div>
+              <label>Phone Number</label>
+              <div>{{ selectedQuery.phone || 'Not provided' }}</div>
+            </div>
+            <div>
+              <label>Received At</label>
+              <div>{{ selectedQuery.createdAt | date:'fullDate' }} &bull; {{ selectedQuery.createdAt | date:'shortTime' }}</div>
+            </div>
+            <div>
+              <label>Current Status</label>
+              <div>
+                <span class="badge" [class.badge-success]="selectedQuery.status === 'resolved'" [class.badge-warning]="selectedQuery.status === 'pending'">
+                  {{ selectedQuery.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-message-section">
+            <label>Full Message Content</label>
+            <div class="full-message-box">{{ selectedQuery.message }}</div>
+          </div>
+        </div>
+
+        <div class="query-modal-footer">
+          <a [href]="'mailto:' + selectedQuery.email + '?subject=Re: ' + (selectedQuery.subject || 'EventHub Inquiry')" class="btn btn-outline" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-icons" style="font-size: 16px;">email</span> Reply via Email
+          </a>
+          <div style="display: flex; gap: 8px;">
+            @if (selectedQuery.status === 'pending') {
+              <button class="btn btn-primary" (click)="markResolved(selectedQuery._id)">Mark as Resolved</button>
+            }
+            <button class="btn btn-outline" (click)="closeDetails()">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>

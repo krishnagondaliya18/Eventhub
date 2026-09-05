@@ -16,24 +16,36 @@ export class AdminLayoutComponent implements OnInit {
   private http = inject(HttpClient);
   sidebarCollapsed = false;
   pendingEventsCount = 0;
+  pendingQueriesCount = 0;
 
   navItems = [
-    { path: '/admin/dashboard', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/admin/users', icon: 'people', label: 'Users & Hosts' },
-    { path: '/admin/event-list', icon: 'event', label: 'Events', hasBadge: true },
-    { path: '/admin/participants', icon: 'group', label: 'Participants' },
-    { path: '/admin/feedback', icon: 'star', label: 'Feedback' },
-    { path: '/admin/queries', icon: 'help', label: 'Queries' }
+    { path: '/admin/dashboard', icon: 'dashboard', label: 'Dashboard', badgeKey: '' },
+    { path: '/admin/users', icon: 'people', label: 'Users & Hosts', badgeKey: '' },
+    { path: '/admin/event-list', icon: 'event', label: 'Events', badgeKey: 'events' },
+    { path: '/admin/participants', icon: 'group', label: 'Participants', badgeKey: '' },
+    { path: '/admin/feedback', icon: 'star', label: 'Feedback', badgeKey: '' },
+    { path: '/admin/queries', icon: 'help', label: 'Queries', badgeKey: 'queries' }
   ];
 
   ngOnInit() {
     this.checkPendingEvents();
+    this.checkPendingQueries();
   }
 
   checkPendingEvents() {
     this.http.get<any>('/api/events?status=pending').subscribe({
       next: (res) => {
         this.pendingEventsCount = res.total || (res.events ? res.events.length : 0);
+      },
+      error: () => {}
+    });
+  }
+
+  checkPendingQueries() {
+    this.http.get<any>('/api/admin/feedback?type=query').subscribe({
+      next: (res) => {
+        const items = res.items || [];
+        this.pendingQueriesCount = items.filter((q: any) => q.status === 'pending').length;
       },
       error: () => {}
     });

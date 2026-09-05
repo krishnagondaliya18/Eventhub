@@ -24,8 +24,11 @@
           @if (!sidebarCollapsed) {
             <span class="nav-lbl-flex">
               {{ item.label }}
-              @if (item.hasBadge && pendingEventsCount > 0) {
+              @if (item.badgeKey === 'events' && pendingEventsCount > 0) {
                 <span class="pending-bubble">{{ pendingEventsCount }}</span>
+              }
+              @if (item.badgeKey === 'queries' && pendingQueriesCount > 0) {
+                <span class="pending-bubble query-bubble">{{ pendingQueriesCount }}</span>
               }
             </span>
           }
@@ -56,6 +59,12 @@
         <input type="text" placeholder="Search...">
       </div>
       <div class="header-right">
+        <a routerLink="/admin/queries" class="header-msg-icon-btn" title="Messages & Queries">
+          <span class="material-icons">chat</span>
+          @if (pendingQueriesCount > 0) {
+            <span class="header-msg-badge">{{ pendingQueriesCount }}</span>
+          }
+        </a>
         <span class="admin-email">{{ auth.currentUser()?.email }}</span>
         <div class="header-avatar">{{ auth.currentUser()?.name?.charAt(0)?.toUpperCase() }}</div>
       </div>

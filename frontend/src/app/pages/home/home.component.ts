@@ -81,17 +81,80 @@ export class HomeComponent implements OnInit {
   ];
 
   ngOnInit() {
-    this.eventService.getEvents({ status: 'active', limit: 12 }).subscribe({
+    // Fetch all active events sorted by date
+    this.eventService.getEvents({ status: 'active', limit: 40 }).subscribe({
       next: (res: any) => {
-        const events: Event[] = res.events || [];
-        this.newEvents = events.slice(0, 3);
-        this.upcomingEvents = events.slice(3, 5);
-        this.highlightEvent = events[5] || null;
-        this.moreEvents = events.slice(6, 12);
+        const allEvents: Event[] = (res.events || []).sort(
+          (a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
+        const now = Date.now();
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
+        // 1. Upcoming in 24 Hours: strictly events starting within the next 24 hours
+        const next24h = allEvents.filter(e => {
+          const diff = new Date(e.date).getTime() - now;
+          return diff > 0 && diff <= oneDayMs;
+        });
+
+        if (next24h.length >= 2) {
+          this.upcomingEvents = next24h.slice(0, 2);
+        } else {
+          // Fallback to earliest upcoming events if fewer than 2 exist
+          this.upcomingEvents = allEvents.filter(e => new Date(e.date).getTime() > now).slice(0, 2);
+        }
+
+        const upcomingIds = new Set(this.upcomingEvents.map(e => e._id));
+
+        // 2. Highlights This Week: events happening within 7 days
+        const thisWeek = allEvents.filter(e => {
+          const diff = new Date(e.date).getTime() - now;
+          return diff > 0 && diff <= sevenDaysMs && !upcomingIds.has(e._id);
+        });
+
+        if (thisWeek.length > 0) {
+          this.highlightEvent = thisWeek[0];
+        } else {
+          this.highlightEvent = allEvents.find(e => !upcomingIds.has(e._id) && new Date(e.date).getTime() > now) || allEvents[0] || null;
+        }
+
+        // 3. Featured / New Events (excluding already featured items)
+        const usedIds = new Set([...upcomingIds, this.highlightEvent?._id].filter(Boolean));
+        const remaining = allEvents.filter(e => !usedIds.has(e._id));
+
+        this.newEvents = remaining.slice(0, 3);
+        this.moreEvents = remaining.slice(3, 9);
         this.loading = false;
       },
       error: () => { this.loading = false; }
     });
+  }
+
+  getTimeBadge(dateStr: string | Date): { text: string; isUrgent: boolean } {
+    const now = Date.now();
+    const eventTime = new Date(dateStr).getTime();
+    const diffMs = eventTime - now;
+
+    if (diffMs <= 0) {
+      return { text: '⚡ Live / Happening Now', isUrgent: true };
+    }
+
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 1) {
+      return { text: `⚡ Starts in ${diffMinutes}m!`, isUrgent: true };
+    } else if (diffHours < 24) {
+      return { text: `🔥 Starts in ${diffHours}h ${diffMinutes}m`, isUrgent: true };
+    } else if (diffDays === 1) {
+      return { text: `⏰ Tomorrow (${diffHours}h left)`, isUrgent: true };
+    } else if (diffDays <= 7) {
+      return { text: `📅 In ${diffDays} days (This Week)`, isUrgent: false };
+    } else {
+      return { text: `📅 In ${diffDays} days`, isUrgent: false };
+    }
   }
 
   onSearchInput(): void {

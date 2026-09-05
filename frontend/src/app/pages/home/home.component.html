@@ -209,7 +209,10 @@
 <section class="section">
   <div class="container">
     <div class="section-header">
-      <h2>Upcoming <span class="text-primary">in 24h</span></h2>
+      <div>
+        <h2>Upcoming <span class="text-primary">in 24h</span></h2>
+        <p class="text-muted text-sm" style="margin: 4px 0 0;">Events starting today and tomorrow &bull; Live time check</p>
+      </div>
       <a routerLink="/events" class="btn btn-outline btn-sm">View more</a>
     </div>
     <div class="events-grid-2">
@@ -217,6 +220,9 @@
         <a [routerLink]="['/events', event._id]" class="event-card-wide">
           <div class="event-img-wrap-wide">
             <img [src]="event.image" [alt]="event.title" loading="lazy">
+            <span class="live-countdown-badge" [class.urgent]="getTimeBadge(event.date).isUrgent">
+              {{ getTimeBadge(event.date).text }}
+            </span>
             <div class="event-overlay-wide">
               <h3>{{ event.title }}</h3>
             </div>
@@ -237,16 +243,25 @@
   </div>
 </section>
 
-<!-- HIGHLIGHT -->
+<!-- HIGHLIGHT THIS WEEK -->
 @if (highlightEvent) {
 <section class="section section-grey">
   <div class="container">
     <div class="section-header">
-      <h2>Highlights <span class="text-primary">this week</span></h2>
+      <div>
+        <h2>Highlights <span class="text-primary">this week</span></h2>
+        <p class="text-muted text-sm" style="margin: 4px 0 0;">Don't miss the biggest event happening in the next 7 days</p>
+      </div>
       <a routerLink="/events" class="btn btn-outline btn-sm">View more</a>
     </div>
     <a [routerLink]="['/events', highlightEvent._id]" class="highlight-card">
       <div class="highlight-info">
+        <div class="highlight-badge-row">
+          <span class="highlight-pill">THIS WEEK'S TOP PICK</span>
+          <span class="live-countdown-badge" [class.urgent]="getTimeBadge(highlightEvent.date).isUrgent">
+            {{ getTimeBadge(highlightEvent.date).text }}
+          </span>
+        </div>
         <span class="text-primary text-sm">from ₹{{ highlightEvent.price }}</span>
         <h3>{{ highlightEvent.title }}</h3>
         <div class="event-meta">
