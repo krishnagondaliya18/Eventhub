@@ -2,7 +2,6 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 import { FooterComponent } from '../../../shared/footer/footer.component';
 
@@ -15,12 +14,6 @@ import { FooterComponent } from '../../../shared/footer/footer.component';
 })
 export class ContactComponent {
   private http = inject(HttpClient);
-  private sanitizer = inject(DomSanitizer);
-
-  readonly MERCHANT_NAME  = 'Krishna Gondaliya';
-  readonly MERCHANT_EMAIL = 'gondaliyakishan839@gmail.com';
-  readonly MERCHANT_CITY  = 'Surat, Gujarat, India';
-  readonly MERCHANT_PIN   = '395006';
 
   form = {
     name: '',
@@ -33,11 +26,6 @@ export class ContactComponent {
   submitting = false;
   submitted = false;
   errorMessage = '';
-
-  get mapUrl(): SafeResourceUrl {
-    const url = `https://maps.google.com/maps?q=${encodeURIComponent('Surat, Gujarat, India')}&output=embed`;
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
-  }
 
   sendMessage(): void {
     if (!this.form.name.trim() || !this.form.email.trim() || !this.form.message.trim()) {

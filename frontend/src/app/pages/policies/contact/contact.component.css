@@ -51,128 +51,16 @@
 }
 
 .contact-main-layout {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 36px;
-  padding-top: 48px;
-  padding-bottom: 60px;
-}
-
-/* Left info cards */
-.info-card-main {
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-}
-
-.info-card-main h3 {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 8px;
-}
-
-.info-desc {
-  font-size: 0.88rem;
-  color: #94a3b8;
-  margin: 0 0 24px;
-  line-height: 1.5;
-}
-
-.info-items-stack {
   display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-bottom: 28px;
-}
-
-.info-box-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
-  padding: 16px;
-}
-
-.info-icon-circle {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #f87171;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  padding-top: 48px;
+  padding-bottom: 80px;
 }
 
-.info-icon-circle .material-icons {
-  font-size: 1.3rem;
+.contact-form-col {
+  width: 100%;
+  max-width: 680px;
 }
-
-.info-box-details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.info-box-lbl {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #64748b;
-  letter-spacing: 0.5px;
-}
-
-.info-box-val {
-  font-size: 0.95rem;
-  color: #f1f5f9;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-a.info-box-val.highlight {
-  color: #60a5fa;
-}
-
-a.info-box-val.highlight:hover {
-  text-decoration: underline;
-}
-
-.info-box-sub {
-  font-size: 0.74rem;
-  color: #94a3b8;
-  margin-top: 2px;
-}
-
-.map-container-box {
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
-  padding: 14px;
-}
-
-.map-title-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #cbd5e1;
-  margin-bottom: 10px;
-}
-
-.map-title-bar .material-icons {
-  font-size: 1rem;
-  color: #f87171;
-}
-
-/* Right contact form */
 .contact-form-card {
   background: #1e293b;
   border: 1px solid rgba(255, 255, 255, 0.08);
