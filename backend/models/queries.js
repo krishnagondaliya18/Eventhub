@@ -64,7 +64,7 @@ router.delete('/:id', auth, async (req, res) => {
     const user = await User.findById(req.user.id || req.user._id);
     const idx = queries.findIndex(q => q._id == req.params.id);
     if (idx === -1) return res.status(404).json({ message: 'Query not found' });
-    // ફક્ત owner delete કરી શકે
+    // Only owner or admin can delete
     if (queries[idx].email !== user.email && user.role !== 'admin') {
       return res.status(403).json({ message: 'Permission denied' });
     }

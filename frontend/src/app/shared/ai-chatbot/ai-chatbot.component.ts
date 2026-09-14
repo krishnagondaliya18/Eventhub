@@ -31,7 +31,7 @@ export class AiChatbotComponent {
   messages: ChatMessage[] = [
     {
       sender: 'ai',
-      text: 'Hello! 👋 I am **EventHub AI Assistant**.\n\nI can help you discover live events, assist with ticket bookings, explain refund policies, or guide you on hosting your own event as an organizer.\n\nHow can I help you today? You can ask in **English** or **ગુજરાતી**!',
+      text: 'Hello! 👋 I am **EventHub AI Assistant**.\n\nI can help you discover live events, assist with ticket bookings, explain refund policies, or guide you on hosting your own event as an organizer.\n\nHow can I help you today?',
       time: this.formatTime()
     }
   ];

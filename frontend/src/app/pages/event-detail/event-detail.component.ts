@@ -129,7 +129,7 @@ export class EventDetailComponent implements OnInit {
   openModal(): void {
     const token = localStorage.getItem('token');
     if (!token || token === 'null' || token === 'undefined') {
-      alert('ટિકિટ બુક કરવા માટે કૃપા કરીને પહેલા લૉગિન કરો (Please login to book tickets).');
+      alert('Please login to book tickets.');
       this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;
     }
@@ -200,7 +200,7 @@ export class EventDetailComponent implements OnInit {
   proceedToGateway(): void {
     if (!this.event) return;
     if (!this.firstName?.trim() || !this.email?.trim()) {
-      alert('કૃપા કરીને તમારું નામ અને ઈમેઈલ સરનામું દાખલ કરો (Please fill in attendee name and email).');
+      alert('Please fill in your name and email address.');
       return;
     }
     this.sanitizedPaymentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.directPaymentUrl);
@@ -219,7 +219,7 @@ export class EventDetailComponent implements OnInit {
   confirmDirectBooking(): void {
     if (!this.event) return;
     this.processing = true;
-    this.processingMsg = 'ટિકિટ કન્ફર્મ થઈ રહી છે (Confirming Booking & QR Ticket)...';
+    this.processingMsg = 'Confirming Booking & QR Ticket...';
 
     const pMethod = `Razorpay Direct (${this.getSelectedMethodName()})`;
     const refId = this.paymentRefId.trim() || ('RZP-' + Math.random().toString(36).substring(2, 9).toUpperCase());

@@ -62,7 +62,7 @@ ${formattedEvents || 'No active events currently scheduled.'}
 
 ### TONE & GUIDELINES:
 - Be helpful, polite, concise, and enthusiastic about live experiences.
-- If the user asks in Gujarati, respond naturally in friendly Gujarati while keeping technical/event names clear. If they ask in English, answer in English.
+- Always respond in clear, fluent, professional English.
 - Always include the relevant event title, date, venue, price, and link (/events/[ID]) when recommending events so the user can easily click and book.
 - When explaining booking or refunds, provide exact and truthful numbers based on platform policies.
 `;
@@ -75,19 +75,19 @@ async function fallbackChatResponse(message, role) {
   const lower = message.toLowerCase();
   const activeEvents = await Event.find({ status: 'active' }).sort({ date: 1 }).limit(10).lean();
 
-  if (lower.includes('refund') || lower.includes('cancel') || lower.includes('money back') || lower.includes('કેન્સલ') || lower.includes('રીફંડ')) {
+  if (lower.includes('refund') || lower.includes('cancel') || lower.includes('money back')) {
     return `### 💸 EventHub Refund & Cancellation Policy\n\n- **> 48 Hours before event:** **100% Full Refund**\n- **24 – 48 Hours before event:** **50% Refund**\n- **< 24 Hours before event:** **Non-refundable**\n- **Organizer Cancellation:** If an organizer or admin cancels the event, you receive a **100% automatic refund** within 5–7 business days.\n\nYou can manage your bookings directly under [My Bookings](/bookings) or reach out via [Contact Us](/contact).`;
   }
 
-  if (lower.includes('book') || lower.includes('ticket') || lower.includes('qr') || lower.includes('બુકિંગ') || lower.includes('ટિકિટ')) {
+  if (lower.includes('book') || lower.includes('ticket') || lower.includes('qr')) {
     return `### 🎟️ How to Book Tickets on EventHub\n\n1. **Select an Event:** Explore our [Events Catalog](/events) and click on any event you like.\n2. **Choose Quantity:** Select the number of tickets you wish to purchase.\n3. **Secure Checkout:** Pay securely via Razorpay (UPI, Google Pay, PhonePe, Cards, Net Banking).\n4. **Instant Digital QR Ticket:** Your booking confirmation and QR code will appear immediately under [My Bookings](/bookings).\n5. **Venue Entry:** Simply present your digital QR code at the venue gate for instant scanning and admission!`;
   }
 
-  if (lower.includes('host') || lower.includes('organizer') || lower.includes('create event') || lower.includes('હોસ્ટ') || lower.includes('ઇવેન્ટ ઉમેર')) {
+  if (lower.includes('host') || lower.includes('organizer') || lower.includes('create event')) {
     return `### 🎪 Hosting an Event as an Organizer\n\n1. **Sign Up / Log In:** Register as an **Organizer** or log in to your account.\n2. **Submit Event:** Go to [Organizer Events](/organizer/events) and fill in your event details (Title, Category, Venue, Date, Price, Capacity, and Banner Image).\n3. **Admin Review:** Your event will be submitted for verification to ensure safety and quality.\n4. **Go Live & Sell:** Once approved by the Admin, your event goes live to thousands of attendees, and you can track real-time attendee lists and earnings!`;
   }
 
-  if (lower.includes('event') || lower.includes('suggest') || lower.includes('show') || lower.includes('popular') || lower.includes('ઇવેન્ટ')) {
+  if (lower.includes('event') || lower.includes('suggest') || lower.includes('show') || lower.includes('popular')) {
     if (activeEvents.length === 0) {
       return `Currently, there are no live events listed, but stay tuned! New exciting events are added every week. Explore all events at [Events](/events).`;
     }
@@ -100,11 +100,11 @@ async function fallbackChatResponse(message, role) {
     return list;
   }
 
-  if (lower.includes('contact') || lower.includes('support') || lower.includes('help') || lower.includes('સંપર્ક')) {
+  if (lower.includes('contact') || lower.includes('support') || lower.includes('help')) {
     return `### 📞 EventHub Support & Helpdesk\n\nHave questions or need assistance? You can submit your inquiry directly on our [Contact Us Page](/contact). Our management team receives your message instantly in the Admin message bar and via email at **gondaliyakishan839@gmail.com**.`;
   }
 
-  return `Hello! 👋 I am your **EventHub AI Assistant**. I can help you with:\n- **Finding & Recommending Events** (Sports, Music, Tech, Comedy, etc.)\n- **Booking & Ticket Support** (Razorpay payment, QR code entry)\n- **Refund & Cancellation Policies**\n- **Organizer Event Hosting & Guidance**\n\nHow can I help you today? Feel free to ask in English or ગુજરાતી!`;
+  return `Hello! 👋 I am your **EventHub AI Assistant**. I can help you with:\n- **Finding & Recommending Events** (Sports, Music, Tech, Comedy, etc.)\n- **Booking & Ticket Support** (Razorpay payment, QR code entry)\n- **Refund & Cancellation Policies**\n- **Organizer Event Hosting & Guidance**\n\nHow can I help you today?`;
 }
 
 function withTimeout(promise, ms = 12000) {
