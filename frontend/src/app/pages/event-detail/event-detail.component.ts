@@ -31,6 +31,11 @@ export class EventDetailComponent implements OnInit {
   // Direct Razorpay Account Transfer (Krishna Kamleshbhai Gondaliya)
   directPaymentUrl = 'https://razorpay.me/@krishnakamleshbhaigondaliya';
   merchantName = 'KRISHNA KAMLESHBHAI GONDALIYA';
+  upiVpa = 'krishnakamleshbhaigondaliya@razorpay';
+  lockedUpiUri = '';
+  sanitizedUpiUri: SafeResourceUrl | null = null;
+  copiedUpi = false;
+  downloadingTicket = false;
   paymentRefId = '';
   showEmbedFrame = false;
   sanitizedPaymentUrl: SafeResourceUrl | null = null;
@@ -88,6 +93,7 @@ export class EventDetailComponent implements OnInit {
       next: (cfg) => {
         if (cfg?.directPaymentUrl) this.directPaymentUrl = cfg.directPaymentUrl;
         if (cfg?.merchantName) this.merchantName = cfg.merchantName;
+        if (cfg?.upiVpa) this.upiVpa = cfg.upiVpa;
       },
       error: () => {}
     });
@@ -204,8 +210,32 @@ export class EventDetailComponent implements OnInit {
       return;
     }
     this.sanitizedPaymentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.directPaymentUrl);
-    this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(this.directPaymentUrl)}`;
+
+    // NPCI UPI Pull-type specification with fixed locked amount
+    const lockedAmount = this.finalTotal.toFixed(2);
+    const note = encodeURIComponent(`EventHub Ticket: ${this.event.title || 'Event Pass'}`);
+    const payee = encodeURIComponent(this.merchantName);
+    this.lockedUpiUri = `upi://pay?pa=${this.upiVpa}&pn=${payee}&am=${lockedAmount}&cu=INR&tn=${note}`;
+    this.sanitizedUpiUri = this.sanitizer.bypassSecurityTrustUrl(this.lockedUpiUri);
+
+    // Dynamic QR code for camera / UPI scanning with fixed non-editable amount
+    this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=8&data=${encodeURIComponent(this.lockedUpiUri)}`;
     this.checkoutStep = 'gateway';
+  }
+
+  copyUpiId(): void {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(this.upiVpa).then(() => {
+        this.copiedUpi = true;
+        setTimeout(() => this.copiedUpi = false, 2500);
+      }).catch(() => {
+        this.copiedUpi = true;
+        setTimeout(() => this.copiedUpi = false, 2500);
+      });
+    } else {
+      this.copiedUpi = true;
+      setTimeout(() => this.copiedUpi = false, 2500);
+    }
   }
 
   openDirectPaymentWindow(): void {
@@ -305,6 +335,37 @@ export class EventDetailComponent implements OnInit {
   }
 
   downloadConfirmedTicket(): void {
+    const b = this.confirmedBooking;
+    if (b && b._id) {
+      this.downloadingTicket = true;
+      const token = localStorage.getItem('token');
+      this.http.get(`/api/bookings/${b._id}/ticket-pdf`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        responseType: 'blob'
+      }).subscribe({
+        next: (blob: Blob) => {
+          this.downloadingTicket = false;
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `EventHub-Ticket-${b.bookingId || b._id}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err: any) => {
+          this.downloadingTicket = false;
+          console.warn('Backend PDF endpoint error, using printable window:', err);
+          this.openPrintableTicketWindow();
+        }
+      });
+    } else {
+      this.openPrintableTicketWindow();
+    }
+  }
+
+  openPrintableTicketWindow(): void {
     const b  = this.confirmedBooking || {};
     const ev = b.event || this.event;
     const evDate = ev?.date

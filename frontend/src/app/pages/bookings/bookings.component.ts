@@ -102,6 +102,32 @@ export class BookingsComponent implements OnInit {
 
   // ── PDF Ticket ──
   downloadTicket(b: any): void {
+    if (b?._id) {
+      const token = localStorage.getItem('token');
+      this.http.get(`/api/bookings/${b._id}/ticket-pdf`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        responseType: 'blob'
+      }).subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `EventHub-Ticket-${b.bookingId || b._id}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        },
+        error: () => {
+          this.openPrintTicketWindow(b);
+        }
+      });
+    } else {
+      this.openPrintTicketWindow(b);
+    }
+  }
+
+  private openPrintTicketWindow(b: any): void {
     const ev      = b.event;
     const evDate  = new Date(ev?.date).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' });
     const bkDate  = new Date(b.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' });

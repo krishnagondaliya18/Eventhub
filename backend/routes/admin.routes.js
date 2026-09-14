@@ -128,4 +128,15 @@ router.put('/feedback/:id', async (req, res) => {
   }
 });
 
+// POST /api/admin/trigger-reminders — Trigger 24h event reminder broadcast
+router.post('/trigger-reminders', async (req, res) => {
+  try {
+    const { checkAndSendReminders } = require('../utils/reminderScheduler');
+    const result = await checkAndSendReminders();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;

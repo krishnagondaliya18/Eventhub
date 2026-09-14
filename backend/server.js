@@ -73,5 +73,9 @@ const autoCompleteEvents = async () => {
 autoCompleteEvents();
 setInterval(autoCompleteEvents, 10 * 1000); // every 10 seconds
 
+// ── Event Reminder System (Previous Day / 24h prior notification) ──
+const { startReminderScheduler } = require('./utils/reminderScheduler');
+startReminderScheduler();
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`EventHub Server running on http://localhost:${PORT}`));

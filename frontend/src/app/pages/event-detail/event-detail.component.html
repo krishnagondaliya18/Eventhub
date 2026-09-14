@@ -358,7 +358,7 @@
           <div class="gw-card gw-amount-card">
             <div class="gw-amount-header">
               <span class="gw-amount-pill">Official Razorpay Checkout</span>
-              <span class="gw-amount-secure"><span class="material-icons">lock</span> 256-Bit SSL</span>
+              <span class="gw-locked-tag"><span class="material-icons">lock</span> Locked Fixed Amount</span>
             </div>
             <div class="gw-amount-body">
               <div class="gw-amount-num-wrap">
@@ -368,6 +368,7 @@
               <div class="gw-amount-desc">
                 <strong>{{ event?.title }}</strong>
                 <p>{{ quantity }} Ticket{{ quantity > 1 ? 's' : '' }} &bull; Attendee: {{ firstName }} {{ lastName }}</p>
+                <span class="gw-pull-badge">🔒 Pull-type auto-scan fixed price (non-editable)</span>
               </div>
             </div>
           </div>
@@ -438,9 +439,14 @@
             <div class="gw-qr-head">
               <span class="material-icons">qr_code_2</span>
               <div>
-                <h4>Instant UPI QR Code</h4>
-                <p>Scan with any camera or UPI app</p>
+                <h4>Pull-Type UPI QR Code</h4>
+                <p>Auto-scans fixed price (&#8377;{{ finalTotal | number }})</p>
               </div>
+            </div>
+
+            <div class="gw-locked-price-pill">
+              <span class="material-icons">lock</span>
+              <span>Fixed Price: <strong>&#8377;{{ finalTotal | number }}</strong> (Non-editable)</span>
             </div>
 
             <div class="gw-qr-wrapper">
@@ -449,6 +455,24 @@
                 <span class="material-icons">shield</span>
                 <span>Direct Verified Transfer</span>
               </div>
+            </div>
+
+            <!-- DIRECT MOBILE 1-TAP UPI APP LAUNCH -->
+            <a [href]="sanitizedUpiUri" class="btn-upi-direct-app" *ngIf="sanitizedUpiUri">
+              <span class="material-icons">bolt</span>
+              <span>Pay &#8377;{{ finalTotal | number }} via UPI App (GPay / PhonePe)</span>
+            </a>
+
+            <!-- UPI ID & 1-CLICK COPY -->
+            <div class="upi-id-box">
+              <div class="upi-id-left">
+                <span class="upi-id-label">UPI ID / VPA</span>
+                <span class="upi-id-val">{{ upiVpa }}</span>
+              </div>
+              <button class="btn-copy-upi" (click)="copyUpiId()" [title]="copiedUpi ? 'Copied' : 'Copy UPI ID'">
+                <span class="material-icons">{{ copiedUpi ? 'check' : 'content_copy' }}</span>
+                <span>{{ copiedUpi ? 'Copied' : 'Copy' }}</span>
+              </button>
             </div>
 
             <div class="gw-upi-logos">
@@ -460,16 +484,20 @@
 
             <div class="gw-trust-bullets">
               <div class="trust-bullet">
+                <span class="material-icons">lock</span>
+                <span>Fixed Non-Editable Amount Pulled Automatically</span>
+              </div>
+              <div class="trust-bullet">
                 <span class="material-icons">verified_user</span>
                 <span>100% Secure Bank-to-Bank Transfer</span>
               </div>
               <div class="trust-bullet">
-                <span class="material-icons">bolt</span>
-                <span>Instant Ticket Generation with QR Pass</span>
+                <span class="material-icons">mark_email_read</span>
+                <span>Instant Confirmation Email &amp; PDF Ticket</span>
               </div>
               <div class="trust-bullet">
-                <span class="material-icons">support_agent</span>
-                <span>24/7 Verified Booking Protection</span>
+                <span class="material-icons">notifications_active</span>
+                <span>Automated 24h Previous-Day Event Reminder</span>
               </div>
             </div>
           </div>
@@ -510,12 +538,31 @@
 
         <!-- ACTION BUTTONS -->
         <div class="conf-actions">
-          <button class="conf-btn-download" (click)="downloadConfirmedTicket()">
-            <span class="material-icons">download</span> Download Ticket
+          <button class="conf-btn-download" (click)="downloadConfirmedTicket()" [disabled]="downloadingTicket">
+            <span class="material-icons">{{ downloadingTicket ? 'hourglass_top' : 'download' }}</span>
+            <span>{{ downloadingTicket ? 'Generating PDF...' : 'Download PDF Ticket' }}</span>
           </button>
           <button class="conf-btn-back" (click)="goToEvents()">
             Back to Events
           </button>
+        </div>
+
+        <!-- NOTIFICATION HIGHLIGHTS -->
+        <div class="conf-features-box">
+          <div class="conf-feature-item">
+            <span class="material-icons icon-green">mark_email_read</span>
+            <div>
+              <strong>Instant Confirmation Email Sent</strong>
+              <p>Official PDF Ticket Pass &amp; Entry QR have been emailed to <strong>{{ email }}</strong>.</p>
+            </div>
+          </div>
+          <div class="conf-feature-item">
+            <span class="material-icons icon-blue">alarm</span>
+            <div>
+              <strong>24-Hour Reminder Active</strong>
+              <p>EventHub will send an automated reminder with venue directions 1 day before the event.</p>
+            </div>
+          </div>
         </div>
 
         <!-- TRANSACTION ID -->

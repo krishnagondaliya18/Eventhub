@@ -5,6 +5,8 @@ const Event    = require('../models/Event');
 const { protect, adminOnly } = require('../middleware/auth');
 const Razorpay = require('razorpay');
 const crypto   = require('crypto');
+const { sendBookingConfirmationEmail } = require('../utils/mailer');
+const { generateTicketPdf }           = require('../utils/ticketPdf');
 
 const getRazorpayInstance = () => {
   return new Razorpay({
@@ -67,6 +69,7 @@ router.get('/payment-config', (req, res) => {
     success: true,
     directPaymentUrl: process.env.RAZORPAY_DIRECT_LINK || 'https://razorpay.me/@krishnakamleshbhaigondaliya',
     merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'KRISHNA KAMLESHBHAI GONDALIYA',
+    upiVpa: process.env.UPI_VPA || 'krishnakamleshbhaigondaliya@razorpay',
     keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_TSk0Vle1oG7U1A'
   });
 });
@@ -124,7 +127,14 @@ router.post('/verify-payment', protect, async (req, res) => {
 
     const populated = await Booking.findById(booking._id)
       .populate('event', 'title date location price image category isFree')
-      .populate('user',  'name email');
+      .populate('user',  'name email phone');
+
+    // Send instant confirmation email with attached PDF ticket
+    sendBookingConfirmationEmail({
+      booking: populated,
+      event: populated.event,
+      user: populated.user
+    }).catch(mErr => console.error('[CONFIRMATION EMAIL ERROR]', mErr.message));
 
     res.status(201).json({ success: true, message: 'Payment verified and booking confirmed', booking: populated });
   } catch (err) {
@@ -187,10 +197,46 @@ router.post('/', protect, async (req, res) => {
       .populate('event', 'title date location price image category isFree')
       .populate('user',  'name email phone');
 
+    // Send instant confirmation email with attached PDF ticket
+    sendBookingConfirmationEmail({
+      booking: populated,
+      event: populated.event,
+      user: populated.user
+    }).catch(mErr => console.error('[CONFIRMATION EMAIL ERROR]', mErr.message));
+
     res.status(201).json({ success: true, message: 'Booking confirmed successfully!', booking: populated });
   } catch (err) {
     console.error('Booking creation error:', err);
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/bookings/:id/ticket-pdf — Download official PDF ticket pass
+router.get('/:id/ticket-pdf', protect, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate('event')
+      .populate('user', 'name email phone');
+
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+
+    // Authorization check: owner or admin
+    if (booking.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Permission denied' });
+    }
+
+    const pdfBuffer = await generateTicketPdf({
+      booking,
+      event: booking.event,
+      user: booking.user
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="EventHub-Ticket-${booking.bookingId}.pdf"`);
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('PDF ticket download error:', err.message);
+    res.status(500).json({ success: false, message: err.message || 'Error downloading PDF ticket' });
   }
 });
 

@@ -14,6 +14,7 @@ const bookingSchema = new mongoose.Schema({
   paymentDetails:    { type: Object, default: {} },
   paymentStatus:     { type: String, enum: ['pending', 'paid', 'free', 'failed'], default: 'paid' },
   status:            { type: String, enum: ['confirmed', 'cancelled'], default: 'confirmed' },
+  reminderSent:      { type: Boolean, default: false },
   cancelledAt:       { type: Date }
 }, { timestamps: true });
 
