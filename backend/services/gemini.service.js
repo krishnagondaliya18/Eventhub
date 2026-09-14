@@ -15,11 +15,17 @@ function getGenAI() {
  * Fetches dynamic platform knowledge & live active events from MongoDB
  */
 async function buildPlatformContext() {
-  const activeEvents = await Event.find({ status: 'active' })
-    .select('title description category date location price isFree totalTickets availableTickets _id')
-    .sort({ date: 1 })
-    .limit(30)
-    .lean();
+  let activeEvents = [];
+  try {
+    activeEvents = await Event.find({ status: 'active' })
+      .select('title description category date location price isFree totalTickets availableTickets _id')
+      .sort({ date: 1 })
+      .limit(30)
+      .maxTimeMS(4000)
+      .lean();
+  } catch (dbErr) {
+    console.warn('[AI CONTEXT] Event query skipped:', dbErr.message);
+  }
 
   const formattedEvents = activeEvents.map(e => {
     const eventDate = new Date(e.date).toLocaleDateString('en-IN', {
@@ -29,69 +35,129 @@ async function buildPlatformContext() {
   }).join('\n');
 
   return `
-You are "EventHub AI Assistant", the official intelligent AI concierge for EventHub.
-EventHub is a premier online event discovery, hosting, and ticketing management platform.
+You are "EventHub Help & Support Assistant", the official, highly intelligent 24/7 customer support and live concierge representative for EventHub.
+EventHub is an online event ticketing, hosting, discovery, and community platform.
+Support Desk Email: gondaliyakishan839@gmail.com
+Platform Verified Payee / Merchant: Krishna Gondaliya (UPI ID: gondaliyakishan839@okaxis)
 
-### PLATFORM DOMAIN KNOWLEDGE:
-1. Discovery & Ticketing:
-   - Browse events by category (Sports, Music, Technology, Comedy, Culture, Food, Business).
-   - Instant ticket checkout via Razorpay (UPI, Google Pay, PhonePe, Paytm, Visa, Mastercard, Net Banking).
-   - Every booking produces a secure Digital Ticket with a unique QR Code and Booking Reference ID.
-   - Users view, access, and download their ticket PDF under "My Bookings" (/bookings).
-   - At the venue, attendees simply present the QR code on their phone to the gate organizer for instant scanning and admission.
+### COMPLETE EVENTHUB PLATFORM KNOWLEDGE BASE:
 
-2. Cancellation & Refund Policy:
-   - Requested > 48 hours prior to event start: 100% full refund (nominal gateway transaction fee may apply).
-   - Requested 24 to 48 hours prior to event start: 50% refund.
-   - Requested < 24 hours prior to event start: Non-refundable.
-   - If an event is cancelled or withdrawn by the Organizer or Admin: 100% automatic refund is credited within 5-7 business days.
+1. EVENT DISCOVERY & NAVIGATION:
+   - Home Page (/): Features top trending events, category carousels, platform search, and statistics.
+   - Events Catalog (/events): Search by keyword, filter by categories (Sports, Music, Technology, Comedy, Culture, Food, Business, Workshops), date, and Free vs Paid events.
+   - Event Details (/events/:id): High-res banner, full description, organizer profile, interactive Google Map location, remaining tickets progress bar, user reviews & comments, and ticket checkout.
+   - My Bookings (/bookings): Access all purchased tickets, booking reference IDs, order status, and instant official PDF Ticket downloads.
+   - Host Events (/organizer/events): Dedicated portal for event organizers to create, manage, edit, and track events.
+   - Contact Us (/contact): Direct customer inquiry form sent straight to the administrative support team.
 
-3. Organizer & Hosting Capabilities:
-   - Organizers can create/host events at /organizer/events.
-   - Required details: Title, Description, Category, Date/Time, Location/Venue, Price (or Free), Banner Image URL, Total Tickets.
-   - Submitted events enter "Pending" review status for Admin verification before going live.
-   - Organizers have an analytics dashboard to track participant rosters, ticket sales volume, and net earnings.
-   - Organizers can withdraw or cancel events if necessary.
+2. TICKET BOOKING RULES & STEPS:
+   - User must be logged in with a valid account to book.
+   - Maximum allowed ticket quantity per booking is 10 tickets (subject to remaining availability).
+   - Free Events: ₹0 total cost. Instant 1-click registration without payment.
+   - Paid Events Pricing Formula:
+     * Subtotal = Base Price × Quantity
+     * Processing Fee = max(₹50, 2.5% of Subtotal)
+     * Taxes / GST = 8.5% of Subtotal
+     * Total Amount = Subtotal + Processing Fee + Taxes
+   - Instant Confirmation & PDF Ticket:
+     * Immediately after payment, the system generates an official A4 Admission Pass PDF with unique Booking ID, venue, date, attendee name, and scannable gate QR code.
+     * An instant confirmation email is dispatched to the attendee's email with the PDF ticket attached (EventHub-Ticket-[BookingID].pdf).
+     * The attendee can also download the PDF ticket anytime from the payment confirmation screen or under My Bookings (/bookings).
 
-4. Contact & Support:
-   - Inquiries submitted via Contact Us (/contact) are routed straight to the Admin Queries panel.
-   - Management receives an instant email notification at gondaliyakishan839@gmail.com for priority resolution.
+3. PAYMENT METHODS & FIXED LOCKED PRICE UPI:
+   - Pull-Type Auto-Scan Locked Price UPI QR Code:
+     * The QR code encodes standard NPCI UPI parameters (pa=gondaliyakishan839@okaxis, pn=Krishna Gondaliya, am=<TOTAL>, cu=INR).
+     * When scanned using Google Pay, PhonePe, Paytm, BHIM, or any banking UPI app, the payable amount is automatically pre-filled and locked.
+     * The user CANNOT manually edit, increase, or decrease the amount (Non-editable pull payment).
+   - Direct 1-Tap Mobile UPI App Buttons:
+     * Mobile & desktop buttons to launch Google Pay (GPay), PhonePe, Paytm, or BHIM UPI directly with the pre-filled locked price.
+     * Verified Receiver UPI ID: gondaliyakishan839@okaxis (Payee: Krishna Gondaliya) with 1-click copy feature.
+   - Razorpay Multi-Option Gateway:
+     * Direct Razorpay checkout (https://razorpay.me/@krishnakamleshbhaigondaliya) supporting Credit & Debit Cards (Visa, Mastercard, RuPay), Net Banking for all Indian Banks (SBI, HDFC, ICICI, Axis, Bank of Baroda, etc.), and Wallets.
+   - Security: 256-bit SSL encryption with direct bank-to-bank verified settlements.
+
+4. 24-HOUR / PREVIOUS-DAY AUTOMATED EVENT REMINDER SYSTEM:
+   - The platform runs an automated server scheduler every 30 minutes.
+   - It checks all active events scheduled for tomorrow (next 18 to 48 hours).
+   - It automatically dispatches a reminder email to all confirmed attendees with event start time, venue directions, and their attached official PDF admission pass.
+   - Attendees receive this reminder automatically without needing to do anything.
+
+5. CANCELLATION & REFUND POLICY:
+   - User Cancellation (managed via /bookings):
+     * Requested > 48 hours before event start: 100% Full Refund credited to the original payment source within 5–7 business days (minus standard gateway fee if applicable).
+     * Requested 24 to 48 hours before event start: 50% Refund.
+     * Requested < 24 hours before event start: Non-refundable (as venue, seating, and arrangements are already locked).
+   - Organizer / Admin Cancellation:
+     * If an event is cancelled or withdrawn by the Organizer or Admin, a 100% automatic refund is processed to all confirmed ticket holders within 5–7 business days.
+   - Free event registrations can be cancelled at any time at zero cost to free up capacity for others.
+
+6. ORGANIZER & HOSTING RULES:
+   - Any registered user can host events at /organizer/events.
+   - Required details: Title, Description, Category, Date & Time, Venue/Location, Ticket Price (or Free), Banner Image URL, and Total Ticket Capacity.
+   - Event Verification: Submitted events enter "Pending" review status for Admin verification before going live to ensure community safety.
+   - Organizer Dashboard: Organizers can track participant rosters, real-time ticket sales volume, total revenue, and manage or cancel events.
+
+7. VENUE ENTRY & GATE RULES:
+   - Attendees must present their official EventHub digital QR code on mobile or printed PDF ticket pass at the venue entrance.
+   - Gate organizers scan the QR code with the EventHub scanner to grant admission.
+   - A valid government photo ID (Aadhaar, Driving License, Student ID, or Passport) may be requested at the gate.
+   - Duplicate or previously scanned tickets are automatically invalidated.
+
+8. PLATFORM TERMS & PRIVACY RULES:
+   - User data (email, phone, name) is strictly used for ticket delivery, security verification, and event reminder alerts. It is never sold or shared.
+   - Ticket scalping, unauthorized reselling, abusive behavior, or fraudulent event listings result in immediate account termination.
+   - Support assistance is available 24/7 through this Help & Support chat desk and via email at gondaliyakishan839@gmail.com.
 
 ### LIVE EVENTS CURRENTLY IN DATABASE:
 ${formattedEvents || 'No active events currently scheduled.'}
 
-### TONE & GUIDELINES:
-- Be helpful, polite, concise, and enthusiastic about live experiences.
-- Always respond in clear, fluent, professional English.
-- Always include the relevant event title, date, venue, price, and link (/events/[ID]) when recommending events so the user can easily click and book.
-- When explaining booking or refunds, provide exact and truthful numbers based on platform policies.
+### TONE & INSTRUCTIONS:
+- Always be professional, polite, warm, concise, and helpful.
+- Respond in clean, fluent, professional English with proper Markdown formatting (bullet points, bold text).
+- Always provide exact, factual details based on the above EventHub rules and policies.
+- When suggesting events, always provide the Title, Category, Date, Venue, Price, and clickable link (/events/[ID]).
 `;
 }
 
 /**
- * Intelligent fallback engine if GEMINI_API_KEY is not configured
+ * Intelligent fallback engine if GEMINI_API_KEY is not configured or network error occurs
  */
 async function fallbackChatResponse(message, role) {
   const lower = message.toLowerCase();
-  const activeEvents = await Event.find({ status: 'active' }).sort({ date: 1 }).limit(10).lean();
+  let activeEvents = [];
+  try {
+    activeEvents = await Event.find({ status: 'active' }).sort({ date: 1 }).limit(10).maxTimeMS(4000).lean();
+  } catch {}
 
   if (lower.includes('refund') || lower.includes('cancel') || lower.includes('money back')) {
-    return `### 💸 EventHub Refund & Cancellation Policy\n\n- **> 48 Hours before event:** **100% Full Refund**\n- **24 – 48 Hours before event:** **50% Refund**\n- **< 24 Hours before event:** **Non-refundable**\n- **Organizer Cancellation:** If an organizer or admin cancels the event, you receive a **100% automatic refund** within 5–7 business days.\n\nYou can manage your bookings directly under [My Bookings](/bookings) or reach out via [Contact Us](/contact).`;
+    return `### 💸 EventHub Refund & Cancellation Policy\n\n- **> 48 Hours before event start:** **100% Full Refund** (credited to original payment method within 5–7 business days).\n- **24 – 48 Hours before event start:** **50% Refund**.\n- **< 24 Hours before event start:** **Non-refundable** due to venue preparations.\n- **Organizer/Admin Cancellation:** **100% Automatic Refund** is issued to all attendees if an event is cancelled by the organizer.\n\nYou can manage your bookings directly under [My Bookings](/bookings) or reach support via [Contact Us](/contact).`;
   }
 
-  if (lower.includes('book') || lower.includes('ticket') || lower.includes('qr')) {
-    return `### 🎟️ How to Book Tickets on EventHub\n\n1. **Select an Event:** Explore our [Events Catalog](/events) and click on any event you like.\n2. **Choose Quantity:** Select the number of tickets you wish to purchase.\n3. **Secure Checkout:** Pay securely via Razorpay (UPI, Google Pay, PhonePe, Cards, Net Banking).\n4. **Instant Digital QR Ticket:** Your booking confirmation and QR code will appear immediately under [My Bookings](/bookings).\n5. **Venue Entry:** Simply present your digital QR code at the venue gate for instant scanning and admission!`;
+  if (lower.includes('book') || lower.includes('ticket') || lower.includes('pdf') || lower.includes('qr pass')) {
+    return `### 🎟️ How to Book Tickets on EventHub\n\n1. **Browse Events:** Visit our [Events Catalog](/events) and select any event.\n2. **Select Quantity:** Choose between 1 to 10 tickets.\n3. **Price Breakdown:** View transparent pricing including base ticket price, processing fee, and taxes.\n4. **Secure Payment:**\n   - **Pull-Type UPI QR:** Auto-scans the exact fixed price (non-editable).\n   - **UPI Apps:** Direct 1-tap buttons for **GPay**, **PhonePe**, **Paytm**, and **BHIM** to \`gondaliyakishan839@okaxis\`.\n   - **Razorpay:** Cards and Net Banking.\n5. **Instant PDF Ticket:** Your official A4 Admission Pass with scannable gate QR code is generated instantly and emailed to you. You can also download it anytime from [My Bookings](/bookings)!`;
+  }
+
+  if (lower.includes('payment') || lower.includes('upi') || lower.includes('razorpay') || lower.includes('gpay') || lower.includes('phonepe') || lower.includes('paytm') || lower.includes('price')) {
+    return `### 💳 EventHub Payment & UPI System\n\n- **Pull-Type Auto-Scan QR Code:** When you scan the QR code with any UPI app, the exact booking price is automatically pulled and locked. Payer cannot edit, increase, or decrease the amount.\n- **Direct Mobile UPI Apps:** 1-tap direct buttons for **Google Pay (GPay)**, **PhonePe**, **Paytm**, and **BHIM UPI**.\n- **Receiver UPI ID:** \`gondaliyakishan839@okaxis\` (Verified Merchant: **Krishna Gondaliya**).\n- **Razorpay Direct Gateway:** Supports Credit/Debit Cards (Visa, Mastercard, RuPay), Net Banking (SBI, HDFC, ICICI, Axis, and all major Indian banks), and Wallets.\n- **Security:** 256-bit SSL encryption with direct bank-to-bank verified settlements.`;
+  }
+
+  if (lower.includes('remind') || lower.includes('reminder') || lower.includes('24 hour') || lower.includes('notification') || lower.includes('previous day')) {
+    return `### ⏰ 24-Hour Automated Event Reminder System\n\nEventHub features an automated background scheduler that runs every 30 minutes on our server:\n- **Timing:** Exactly 1 day prior (18 to 48 hours before the event starts).\n- **Delivery:** An automated reminder email is sent to all confirmed attendees with event start time, venue directions, and their attached official PDF ticket pass.\n- **Automatic:** Attendees do not need to register for reminders—they are delivered automatically!`;
   }
 
   if (lower.includes('host') || lower.includes('organizer') || lower.includes('create event')) {
-    return `### 🎪 Hosting an Event as an Organizer\n\n1. **Sign Up / Log In:** Register as an **Organizer** or log in to your account.\n2. **Submit Event:** Go to [Organizer Events](/organizer/events) and fill in your event details (Title, Category, Venue, Date, Price, Capacity, and Banner Image).\n3. **Admin Review:** Your event will be submitted for verification to ensure safety and quality.\n4. **Go Live & Sell:** Once approved by the Admin, your event goes live to thousands of attendees, and you can track real-time attendee lists and earnings!`;
+    return `### 🎪 Hosting an Event as an Organizer\n\n1. **Register as Organizer:** Sign up or log in to your account.\n2. **Submit Event Details:** Go to [Host Events](/organizer/events) and enter Title, Category, Date/Time, Venue, Price (or Free), Banner Image, and Capacity.\n3. **Admin Verification:** Your event enters "Pending" status for review and approval.\n4. **Go Live & Sell Tickets:** Once approved, your event appears publicly on the catalog, and you can track attendee rosters and ticket sales in real-time!`;
   }
 
-  if (lower.includes('event') || lower.includes('suggest') || lower.includes('show') || lower.includes('popular')) {
+  if (lower.includes('rule') || lower.includes('policy') || lower.includes('terms') || lower.includes('gate') || lower.includes('entry')) {
+    return `### 📜 EventHub Platform Rules & Venue Guidelines\n\n- **Gate Admission:** Present your digital QR code or printed PDF pass at the gate for instant scanning.\n- **Photo ID:** A valid government photo ID (Aadhaar, Driving License, Student ID) may be requested to verify identity.\n- **Booking Limits:** Maximum 10 tickets per booking.\n- **Ticket Authenticity:** Each ticket has a cryptographically unique Booking ID and scannable entry QR. Counterfeit or duplicate tickets will be rejected at the gate.\n- **User Privacy:** Email and phone are used strictly for ticket dispatch and 24h event reminders, never shared with third parties.`;
+  }
+
+  if (lower.includes('event') || lower.includes('suggest') || lower.includes('show') || lower.includes('popular') || lower.includes('upcoming')) {
     if (activeEvents.length === 0) {
-      return `Currently, there are no live events listed, but stay tuned! New exciting events are added every week. Explore all events at [Events](/events).`;
+      return `Currently, there are no live events listed, but stay tuned! Explore all upcoming events at [Events](/events).`;
     }
-    let list = `### 🎉 Upcoming Recommended Events on EventHub:\n\n`;
+    let list = `### 🎉 Upcoming Live Events on EventHub:\n\n`;
     activeEvents.slice(0, 4).forEach((e, idx) => {
       const d = new Date(e.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       list += `${idx + 1}. **[${e.title}](/events/${e._id})**\n   - **Category:** ${e.category} | **Venue:** ${e.location}\n   - **Date:** ${d} | **Price:** ${e.isFree ? 'FREE' : '₹' + e.price}\n   - [Book Now &rarr;](/events/${e._id})\n\n`;
@@ -100,11 +166,11 @@ async function fallbackChatResponse(message, role) {
     return list;
   }
 
-  if (lower.includes('contact') || lower.includes('support') || lower.includes('help')) {
-    return `### 📞 EventHub Support & Helpdesk\n\nHave questions or need assistance? You can submit your inquiry directly on our [Contact Us Page](/contact). Our management team receives your message instantly in the Admin message bar and via email at **gondaliyakishan839@gmail.com**.`;
+  if (lower.includes('contact') || lower.includes('support') || lower.includes('help') || lower.includes('email') || lower.includes('phone')) {
+    return `### 📞 EventHub Customer Help & Support\n\n- **In-App Live Support:** You can ask any question right here in this Help & Support desk 24/7!\n- **Contact Us Page:** Submit inquiries directly on our [Contact Us Page](/contact). Our admin team receives them in real-time.\n- **Official Support Email:** **gondaliyakishan839@gmail.com**\n- **Verified Payee / Merchant:** **Krishna Gondaliya** (\`gondaliyakishan839@okaxis\`).`;
   }
 
-  return `Hello! 👋 I am your **EventHub AI Assistant**. I can help you with:\n- **Finding & Recommending Events** (Sports, Music, Tech, Comedy, etc.)\n- **Booking & Ticket Support** (Razorpay payment, QR code entry)\n- **Refund & Cancellation Policies**\n- **Organizer Event Hosting & Guidance**\n\nHow can I help you today?`;
+  return `Hello! 👋 Welcome to **EventHub Help & Support**.\n\nI can assist you with:\n- 🎟️ **Event Discovery & Bookings** (live events, pricing, locked fixed price, PDF ticket pass)\n- 💳 **Payments & UPI** (GPay, PhonePe, Paytm, BHIM to \`gondaliyakishan839@okaxis\`, Razorpay)\n- ⏰ **24-Hour Event Reminders** (automated 1-day prior alerts with venue directions)\n- 💸 **Refund & Cancellation Policy** (100% full refund >48h, 50% refund 24-48h)\n- 🎪 **Organizer Hosting & Event Creation** (approval flow, participant rosters)\n- 📜 **Platform Rules, Gate Entry & Terms of Service**\n\nHow can I help you today?`;
 }
 
 function withTimeout(promise, ms = 12000) {
@@ -126,7 +192,7 @@ async function chatWithAI({ message, history = [], role = 'user' }) {
 
   try {
     const systemPrompt = await buildPlatformContext();
-    const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-pro', 'gemini-3.5-flash'];
+    const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-pro', 'gemini-1.5-flash'];
     for (const modelName of candidateModels) {
       try {
         const model = genAI.getGenerativeModel({

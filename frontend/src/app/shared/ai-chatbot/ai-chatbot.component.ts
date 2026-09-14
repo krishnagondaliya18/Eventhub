@@ -31,17 +31,19 @@ export class AiChatbotComponent {
   messages: ChatMessage[] = [
     {
       sender: 'ai',
-      text: 'Hello! 👋 I am **EventHub AI Assistant**.\n\nI can help you discover live events, assist with ticket bookings, explain refund policies, or guide you on hosting your own event as an organizer.\n\nHow can I help you today?',
+      text: 'Hello! 👋 Welcome to **EventHub Help & Support**.\n\nI can answer all your questions about:\n- 🎟️ **Event Booking & Pricing:** Booking steps, locked fixed price, tickets limits (1–10)\n- 💳 **Payments & UPI:** GPay, PhonePe, Paytm, BHIM to gondaliyakishan839@okaxis, auto-scan pull QR, Razorpay\n- 📄 **Official PDF Tickets:** Instant digital admission pass with gate entry QR code\n- ⏰ **24-Hour Event Reminders:** Automated reminder emails 1 day before the event\n- 💸 **Refund & Cancellation Policy:** 100% refund (>48h), 50% refund (24-48h), organizer cancellation rules\n- 🎪 **Hosting Events as an Organizer:** Creating events, approval process, participant rosters\n- 📜 **Platform Rules, Terms & Privacy:** Gate security rules, terms of service, customer support\n\nHow can I help you today?',
       time: this.formatTime()
     }
   ];
 
   quickPrompts = [
-    { label: '🎉 Suggest Popular Events', prompt: 'Suggest upcoming popular events happening this week' },
-    { label: '🎟️ How to Book Tickets?', prompt: 'How do I book tickets and get my QR pass?' },
-    { label: '💸 Refund & Cancellation', prompt: 'What is the refund and cancellation policy?' },
-    { label: '🎪 Host an Event', prompt: 'How can I create and host an event as an organizer?' },
-    { label: '📞 Contact Support', prompt: 'How do I contact customer support?' }
+    { label: '🎟️ How to Book Tickets?', prompt: 'How do I book tickets and get my PDF pass?' },
+    { label: '💳 Payment & UPI Options', prompt: 'What payment methods, UPI apps, and auto-scan QR options are available?' },
+    { label: '💸 Refund & Cancellation', prompt: 'What is the full refund and cancellation policy?' },
+    { label: '⏰ 24h Event Reminder System', prompt: 'How does the 24-hour event reminder system work?' },
+    { label: '🎪 How to Host an Event?', prompt: 'What are the rules and process to host an event as an organizer?' },
+    { label: '📜 Platform Rules & Terms', prompt: 'What are the platform rules, gate entry rules, and terms of service?' },
+    { label: '📞 Contact Support Team', prompt: 'How do I contact customer support directly?' }
   ];
 
   toggleChat() {
@@ -61,7 +63,7 @@ export class AiChatbotComponent {
     this.messages = [
       {
         sender: 'ai',
-        text: 'Chat history cleared. How else can I assist you with EventHub today?',
+        text: 'Chat history cleared. Welcome to EventHub Help & Support! What can I help you with?',
         time: this.formatTime()
       }
     ];

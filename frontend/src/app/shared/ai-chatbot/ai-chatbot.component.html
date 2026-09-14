@@ -1,8 +1,8 @@
-<!-- FLOATING AI TRIGGER BUTTON -->
+<!-- FLOATING HELP & SUPPORT TRIGGER BUTTON -->
 <div class="ai-trigger-wrapper" *ngIf="!isOpen">
-  <button class="ai-trigger-btn" (click)="toggleChat()" title="Ask EventHub AI">
-    <span class="material-icons trigger-icon">auto_awesome</span>
-    <span class="trigger-label">Ask AI</span>
+  <button class="ai-trigger-btn" (click)="toggleChat()" title="EventHub Help & Support">
+    <span class="material-icons trigger-icon">support_agent</span>
+    <span class="trigger-label">Help &amp; Support</span>
     <span class="trigger-pulse"></span>
   </button>
 </div>
@@ -13,12 +13,12 @@
   <div class="ai-chat-header" (click)="isMinimized = !isMinimized">
     <div class="ai-header-left">
       <div class="ai-avatar-ring">
-        <span class="material-icons">auto_awesome</span>
+        <span class="material-icons">support_agent</span>
       </div>
       <div>
-        <h4 class="ai-header-title">EventHub AI</h4>
+        <h4 class="ai-header-title">Help &amp; Support</h4>
         <span class="ai-header-status">
-          <span class="status-dot"></span> Live Concierge
+          <span class="status-dot"></span> 24/7 Live Support &amp; Guide
         </span>
       </div>
     </div>
@@ -86,7 +86,7 @@
         type="text"
         [(ngModel)]="inputMessage"
         name="inputMessage"
-        placeholder="Ask about events, booking, refunds..."
+        placeholder="Ask about events, bookings, payments, policies..."
         class="ai-input-field"
         autocomplete="off"
         [disabled]="isLoading"
