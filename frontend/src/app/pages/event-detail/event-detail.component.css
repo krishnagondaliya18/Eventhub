@@ -201,3 +201,505 @@
   .checkout-container-shell{padding:20px 16px}
   .chk-body-grid{grid-template-columns:1fr}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 2: RAZORPAY DIRECT TRANSFER GATEWAY
+   ═══════════════════════════════════════════════════════════ */
+.gateway-screen {
+  animation: chkFadeIn 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+
+.gw-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.gw-btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.gw-btn-back:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.gw-btn-back .material-icons {
+  font-size: 1.1rem;
+}
+
+.gw-merchant-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.gw-merchant-badge .material-icons {
+  font-size: 1rem;
+  color: #22c55e;
+}
+.gw-merchant-badge strong {
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+.gw-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.gw-col-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.gw-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.gw-card {
+  background: #161b2e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Amount Header Card */
+.gw-amount-card {
+  background: linear-gradient(145deg, #182038 0%, #131728 100%);
+  border-color: rgba(96, 165, 250, 0.2);
+}
+.gw-amount-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.gw-amount-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #60a5fa;
+  background: rgba(37, 99, 235, 0.15);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.gw-amount-secure {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+.gw-amount-secure .material-icons {
+  font-size: 0.85rem;
+  color: #22c55e;
+}
+
+.gw-amount-body {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.gw-amount-num-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.gw-currency {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #60a5fa;
+}
+.gw-amount-val {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  font-family: var(--font-display, 'Syne', sans-serif);
+  line-height: 1;
+}
+.gw-amount-desc {
+  text-align: right;
+}
+.gw-amount-desc strong {
+  display: block;
+  font-size: 0.92rem;
+  color: #f1f5f9;
+}
+.gw-amount-desc p {
+  margin: 3px 0 0;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+/* Action Card & Primary Pay Button */
+.gw-action-card {
+  background: #161b2e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.btn-razorpay-direct {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%);
+  border: none;
+  border-radius: 14px;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+  transition: all 0.25s ease;
+  text-align: left;
+}
+.btn-razorpay-direct:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.55);
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+}
+.btn-rzp-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.btn-rzp-icon-circle .material-icons {
+  font-size: 1.6rem;
+  color: #ffffff;
+}
+.btn-rzp-text {
+  flex: 1;
+}
+.btn-rzp-heading {
+  display: block;
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+.btn-rzp-sub {
+  display: block;
+  font-size: 0.76rem;
+  color: #dbeafe;
+  margin-top: 3px;
+  font-weight: 600;
+}
+.btn-rzp-arrow {
+  font-size: 1.3rem;
+  color: #ffffff;
+  opacity: 0.85;
+}
+
+.gw-direct-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin: 12px 0 0;
+  line-height: 1.4;
+}
+.gw-direct-hint .material-icons {
+  font-size: 0.95rem;
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+/* Embed Toggle */
+.gw-embed-toggle-row {
+  margin-top: 14px;
+  text-align: center;
+}
+.btn-toggle-embed {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.btn-toggle-embed:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.gw-iframe-container {
+  margin-top: 14px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #ffffff;
+  height: 480px;
+}
+.gw-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Step 2 Confirmation Card */
+.gw-confirm-card {
+  border-color: rgba(34, 197, 94, 0.25);
+  background: linear-gradient(145deg, #141b2c 0%, #111827 100%);
+}
+.gw-confirm-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.gw-confirm-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.gw-confirm-icon .material-icons {
+  color: #22c55e;
+  font-size: 1.3rem;
+}
+.gw-confirm-head h4 {
+  margin: 0 0 3px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+.gw-confirm-head p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.gw-utr-input-group {
+  margin-bottom: 14px;
+}
+.gw-utr-input-group label {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+}
+
+.btn-confirm-ticket {
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.35);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-confirm-ticket:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(22, 163, 74, 0.45);
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+.btn-confirm-ticket:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-confirm-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Side Card: Dynamic UPI QR */
+.gw-qr-card {
+  text-align: center;
+}
+.gw-qr-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  margin-bottom: 14px;
+}
+.gw-qr-head .material-icons {
+  font-size: 1.5rem;
+  color: #f87171;
+}
+.gw-qr-head h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+.gw-qr-head p {
+  margin: 2px 0 0;
+  font-size: 0.74rem;
+  color: #94a3b8;
+}
+
+.gw-qr-wrapper {
+  background: #ffffff;
+  padding: 14px;
+  border-radius: 16px;
+  display: inline-block;
+  margin: 6px auto 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+.gw-qr-image {
+  width: 190px;
+  height: 190px;
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+}
+.gw-qr-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+.gw-qr-badge .material-icons {
+  font-size: 0.85rem;
+  color: #16a34a;
+}
+
+.gw-upi-logos {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.upi-chip {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.gw-trust-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 14px;
+}
+.trust-bullet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+}
+.trust-bullet .material-icons {
+  font-size: 0.95rem;
+  color: #22c55e;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE ADJUSTMENTS FOR MOBILE & TABLETS
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 860px) {
+  .gw-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .gw-col-side {
+    order: 2;
+  }
+  .gw-col-main {
+    order: 1;
+  }
+  .gw-amount-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .gw-amount-desc {
+    text-align: left;
+  }
+}
+
+@media (max-width: 540px) {
+  .checkout-container-shell {
+    padding: 16px 12px;
+    border-radius: 16px;
+  }
+  .gw-amount-val {
+    font-size: 2rem;
+  }
+  .btn-razorpay-direct {
+    padding: 14px 16px;
+  }
+  .btn-rzp-heading {
+    font-size: 0.98rem;
+  }
+  .btn-rzp-icon-circle {
+    width: 36px;
+    height: 36px;
+  }
+  .gw-top-nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .gw-qr-image {
+    width: 160px;
+    height: 160px;
+  }
+}

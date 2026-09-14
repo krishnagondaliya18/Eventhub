@@ -24,9 +24,17 @@ export class EventDetailComponent implements OnInit {
   processingMsg = 'Processing Payment...';
   user: any     = null;
 
-  // Checkout Steps: 'payment' | 'confirmation'
-  checkoutStep: 'payment' | 'confirmation' = 'payment';
+  // Checkout Steps: 'payment' | 'gateway' | 'confirmation'
+  checkoutStep: 'payment' | 'gateway' | 'confirmation' = 'payment';
   confirmedBooking: any = null;
+
+  // Direct Razorpay Account Transfer (Krishna Kamleshbhai Gondaliya)
+  directPaymentUrl = 'https://razorpay.me/@krishnakamleshbhaigondaliya';
+  merchantName = 'KRISHNA KAMLESHBHAI GONDALIYA';
+  paymentRefId = '';
+  showEmbedFrame = false;
+  sanitizedPaymentUrl: SafeResourceUrl | null = null;
+  qrCodeUrl = '';
 
   // Attendee Information
   firstName = 'Alex';
@@ -74,6 +82,15 @@ export class EventDetailComponent implements OnInit {
         if (this.user.email) this.email = this.user.email;
       } catch {}
     }
+
+    // Load dynamic Razorpay payment configuration if configured
+    this.http.get<any>('/api/bookings/payment-config').subscribe({
+      next: (cfg) => {
+        if (cfg?.directPaymentUrl) this.directPaymentUrl = cfg.directPaymentUrl;
+        if (cfg?.merchantName) this.merchantName = cfg.merchantName;
+      },
+      error: () => {}
+    });
   }
 
   get soldPercent(): number {
@@ -180,134 +197,76 @@ export class EventDetailComponent implements OnInit {
     }
   }
 
-  payWithRazorpay(): void {
+  proceedToGateway(): void {
+    if (!this.event) return;
+    if (!this.firstName?.trim() || !this.email?.trim()) {
+      alert('કૃપા કરીને તમારું નામ અને ઈમેઈલ સરનામું દાખલ કરો (Please fill in attendee name and email).');
+      return;
+    }
+    this.sanitizedPaymentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.directPaymentUrl);
+    this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(this.directPaymentUrl)}`;
+    this.checkoutStep = 'gateway';
+  }
+
+  openDirectPaymentWindow(): void {
+    window.open(this.directPaymentUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  toggleEmbedFrame(): void {
+    this.showEmbedFrame = !this.showEmbedFrame;
+  }
+
+  confirmDirectBooking(): void {
     if (!this.event) return;
     this.processing = true;
-    this.processingMsg = `Opening ${this.getSelectedMethodName()} Payment...`;
+    this.processingMsg = 'ટિકિટ કન્ફર્મ થઈ રહી છે (Confirming Booking & QR Ticket)...';
 
-    this.http.post<any>('/api/bookings/create-order', {
-      eventId:  this.event._id,
-      quantity: this.quantity
+    const pMethod = `Razorpay Direct (${this.getSelectedMethodName()})`;
+    const refId = this.paymentRefId.trim() || ('RZP-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+
+    this.http.post<any>('/api/bookings', {
+      eventId:       this.event._id,
+      quantity:      this.quantity,
+      paymentMethod: pMethod,
+      razorpayPaymentId: refId,
+      totalAmount:   this.finalTotal,
+      paymentDetails: {
+        merchant: this.merchantName,
+        paymentMethod: this.getSelectedMethodName(),
+        attendee: `${this.firstName} ${this.lastName}`.trim(),
+        email: this.email,
+        directTransfer: true
+      }
     }).subscribe({
       next: (res: any) => {
-        const keyToUse      = res.keyId;
-        const amountInPaise = res.order ? res.order.amount : Math.round(this.finalTotal * 100);
-
-        const methodMap: Record<string, string> = {
-          upi: 'upi',
-          card: 'card',
-          netbanking: 'netbanking',
-          wallet: 'wallet'
+        this.processing = false;
+        this.confirmedBooking = res.booking || {
+          bookingId:   'EH-' + Date.now().toString().slice(-6),
+          event:       this.event,
+          quantity:    this.quantity,
+          totalAmount: this.finalTotal,
+          createdAt:   new Date()
         };
-        const chosenInstrument = methodMap[this.selectedMethod] || 'upi';
-
-        const options: any = {
-          key:         keyToUse,
-          amount:      amountInPaise,
-          currency:    'INR',
-          name:        'EventHub',
-          description: `${this.event.title} (${this.quantity} Ticket${this.quantity > 1 ? 's' : ''})`,
-          image:       this.event.image || 'https://cdn-icons-png.flaticon.com/512/3845/3845868.png',
-          prefill: {
-            name:    `${this.firstName} ${this.lastName}`.trim(),
-            email:   this.email,
-            contact: this.user?.phone || '',
-            method:  chosenInstrument
-          },
-          config: {
-            display: {
-              blocks: {
-                only_selected_method: {
-                  name: this.getMethodTitle(this.selectedMethod),
-                  instruments: [
-                    chosenInstrument === 'upi'
-                      ? { method: 'upi', flows: ['qr', 'collect', 'intent'] }
-                      : { method: chosenInstrument }
-                  ]
-                }
-              },
-              sequence: ['block.only_selected_method'],
-              preferences: {
-                show_default_blocks: false
-              }
-            }
-          },
-          theme: { color: '#e53935' },
-          handler: (response: any) => {
-            this.processingMsg = 'Confirming Booking...';
-            this.http.post<any>('/api/bookings/verify-payment', {
-              eventId:              this.event._id,
-              quantity:             this.quantity,
-              razorpay_order_id:    response.razorpay_order_id,
-              razorpay_payment_id:  response.razorpay_payment_id,
-              razorpay_signature:   response.razorpay_signature
-            }).subscribe({
-              next: (verifyRes: any) => {
-                this.processing = false;
-                this.confirmedBooking = verifyRes.booking || {
-                  bookingId:   'TRX-' + Math.floor(1000 + Math.random() * 9000),
-                  event:       this.event,
-                  quantity:    this.quantity,
-                  totalAmount: this.finalTotal,
-                  createdAt:   new Date()
-                };
-                this.checkoutStep = 'confirmation';
-                this.alreadyBooked = true;
-              },
-              error: () => {
-                this.http.post<any>('/api/bookings', {
-                  eventId:       this.event._id,
-                  quantity:      this.quantity,
-                  paymentMethod: 'Razorpay (' + response.razorpay_payment_id + ')',
-                  totalAmount:   this.finalTotal
-                }).subscribe({
-                  next: (fallbackRes: any) => {
-                    this.processing = false;
-                    this.confirmedBooking = fallbackRes.booking;
-                    this.checkoutStep = 'confirmation';
-                    this.alreadyBooked = true;
-                  },
-                  error: () => {
-                    this.processing = false;
-                    this.checkoutStep = 'confirmation';
-                  }
-                });
-              }
-            });
-          },
-          modal: { ondismiss: () => { this.processing = false; } }
-        };
-
-        if (res.order?.id) options.order_id = res.order.id;
-
-        try {
-          if (typeof Razorpay === 'undefined') {
-            this.processFallbackDirectPayment();
-            return;
-          }
-          const rzp = new Razorpay(options);
-          rzp.on('payment.failed', (failRes: any) => {
-            this.processing = false;
-            alert(`Payment Failed: ${failRes.error?.description || 'Transaction unsuccessful'}`);
-          });
-          rzp.open();
-        } catch (e: any) {
-          this.processFallbackDirectPayment();
-        }
+        this.checkoutStep = 'confirmation';
+        this.alreadyBooked = true;
       },
       error: (err: any) => {
         this.processing = false;
         if (err?.status === 401 || err?.error?.message === 'Token invalid' || err?.error?.message === 'Not authorized, no token') {
-          alert('Login Session Expired');
+          alert('Login Session Expired. Please login again.');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           this.showModal = false;
           this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
           return;
         }
-        this.processFallbackDirectPayment();
+        alert('Booking Error: ' + (err?.error?.message || 'Could not verify booking. Please try again.'));
       }
     });
+  }
+
+  payWithRazorpay(): void {
+    this.proceedToGateway();
   }
 
   processFallbackDirectPayment(): void {

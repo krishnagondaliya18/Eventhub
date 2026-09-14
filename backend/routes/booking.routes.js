@@ -51,12 +51,24 @@ router.post('/create-order', protect, async (req, res) => {
       order,
       keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_TSk0Vle1oG7U1A',
       amount: finalAmount,
-      currency: 'INR'
+      currency: 'INR',
+      directPaymentUrl: process.env.RAZORPAY_DIRECT_LINK || 'https://razorpay.me/@krishnakamleshbhaigondaliya',
+      merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'KRISHNA KAMLESHBHAI GONDALIYA'
     });
   } catch (err) {
     console.error('Razorpay Create Order Error:', err);
     res.status(500).json({ success: false, message: err.message || 'Error creating Razorpay order' });
   }
+});
+
+// GET /api/bookings/payment-config — Public config for direct transfer
+router.get('/payment-config', (req, res) => {
+  res.json({
+    success: true,
+    directPaymentUrl: process.env.RAZORPAY_DIRECT_LINK || 'https://razorpay.me/@krishnakamleshbhaigondaliya',
+    merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'KRISHNA KAMLESHBHAI GONDALIYA',
+    keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_TSk0Vle1oG7U1A'
+  });
 });
 
 // POST /api/bookings/verify-payment — Verify Razorpay signature & Confirm Booking
@@ -143,7 +155,7 @@ router.post('/', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: `Only ${event.availableTickets} tickets available` });
     }
 
-    const totalAmount = event.isFree ? 0 : event.price * qty;
+    const totalAmount = event.isFree ? 0 : (req.body.totalAmount ? Number(req.body.totalAmount) : (event.price * qty));
 
     const booking = await Booking.create({
       user: req.user._id,
@@ -151,10 +163,13 @@ router.post('/', protect, async (req, res) => {
       quantity: qty,
       totalAmount,
       upiId: upiId || paymentDetails?.upiId || '',
-      paymentMethod: event.isFree ? 'Free Registration' : paymentMethod,
-      paymentDetails: paymentDetails || {},
+      paymentMethod: event.isFree ? 'Free Registration' : (paymentMethod || 'Razorpay Direct (Krishna Kamleshbhai Gondaliya)'),
+      paymentDetails: {
+        ...paymentDetails,
+        merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'KRISHNA KAMLESHBHAI GONDALIYA'
+      },
       razorpayOrderId: razorpayOrderId || '',
-      razorpayPaymentId: razorpayPaymentId || '',
+      razorpayPaymentId: razorpayPaymentId || `pay_rzp_${Date.now()}`,
       razorpaySignature: razorpaySignature || '',
       paymentStatus: event.isFree ? 'free' : 'paid',
       status: 'confirmed'
