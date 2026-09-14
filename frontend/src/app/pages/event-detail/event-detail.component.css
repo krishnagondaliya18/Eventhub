@@ -863,3 +863,163 @@
   color: #94a3b8;
   line-height: 1.4;
 }
+
+/* ── Minimal Clean QR Column & UPI App Buttons ── */
+.gw-col-qr {
+  display: flex;
+  flex-direction: column;
+}
+.gw-qr-card h4 {
+  margin: 0 0 14px 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+.qr-frame {
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 14px;
+  display: inline-block;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  margin-bottom: 8px;
+}
+.qr-img {
+  width: 170px;
+  height: 170px;
+  display: block;
+  margin: 0 auto;
+}
+.qr-amount-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ef4444;
+  margin: 4px 0 12px 0;
+}
+.upi-id-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+.upi-id-row .upi-id-label {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+.upi-id-row .upi-id-val {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  font-family: monospace;
+}
+.btn-copy-upi-mini {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+.btn-copy-upi-mini:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+.btn-copy-upi-mini .material-icons {
+  font-size: 0.9rem;
+}
+.upi-app-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.upi-app-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  color: #ffffff !important;
+  transition: transform 0.15s, opacity 0.15s;
+}
+.upi-app-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+.gpay-btn    { background: #1a73e8; }
+.phonepe-btn { background: #5f259f; }
+.paytm-btn   { background: #00b9f5; color: #0f172a !important; }
+.bhim-btn    { background: #00897b; }
+
+.qr-security-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0;
+}
+.qr-security-note .material-icons {
+  font-size: 0.95rem;
+  color: #22c55e;
+}
+
+/* ── Minimal Confirmation Card ── */
+.conf-details-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin: 18px 0;
+  text-align: left;
+}
+.conf-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.88rem;
+  color: #94a3b8;
+}
+.conf-row:last-child {
+  border-bottom: none;
+}
+.conf-row strong {
+  color: #f1f5f9;
+}
+.conf-paid-amt {
+  color: #4ade80 !important;
+  font-size: 1.05rem;
+}
+.conf-booking-id {
+  font-family: monospace;
+  color: #f87171 !important;
+}
+.conf-email-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin: 0 0 20px 0;
+}
+.conf-email-info .material-icons {
+  font-size: 1rem;
+  color: #38bdf8;
+}
+.conf-email-info strong {
+  color: #f1f5f9;
+}

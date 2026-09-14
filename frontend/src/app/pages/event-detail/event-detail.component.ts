@@ -30,8 +30,8 @@ export class EventDetailComponent implements OnInit {
 
   // Direct Razorpay Account Transfer (Krishna Kamleshbhai Gondaliya)
   directPaymentUrl = 'https://razorpay.me/@krishnakamleshbhaigondaliya';
-  merchantName = 'KRISHNA KAMLESHBHAI GONDALIYA';
-  upiVpa = 'krishnakamleshbhaigondaliya@razorpay';
+  merchantName = 'Krishna Gondaliya';
+  upiVpa = 'gondaliyakishan839@okaxis';
   lockedUpiUri = '';
   sanitizedUpiUri: SafeResourceUrl | null = null;
   copiedUpi = false;
