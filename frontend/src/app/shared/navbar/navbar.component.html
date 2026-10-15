@@ -6,15 +6,30 @@
     </a>
 
     <div class="nav-links" [class.open]="menuOpen">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a>
-      <a routerLink="/events" routerLinkActive="active">Events</a>
-      <a routerLink="/contact" routerLinkActive="active">Contact</a>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()">Home</a>
+      <a routerLink="/events" routerLinkActive="active" (click)="closeMenu()">Events</a>
+      <a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()">Contact</a>
       @if (auth.isLoggedIn()) {
-        <a routerLink="/organizer/events" routerLinkActive="active">Host Events</a>
+        <a routerLink="/organizer/events" routerLinkActive="active" (click)="closeMenu()">Host Events</a>
       }
       @if (auth.isAdmin()) {
-        <a routerLink="/admin" routerLinkActive="active">Admin</a>
+        <a routerLink="/admin" routerLinkActive="active" (click)="closeMenu()">Admin</a>
       }
+      <!-- Mobile exclusive quick actions -->
+      <div class="mobile-only-menu">
+        @if (auth.isLoggedIn()) {
+          <div class="mobile-menu-divider"></div>
+          <a routerLink="/bookings" (click)="closeMenu()">🎟️ My Bookings</a>
+          <a routerLink="/profile" (click)="closeMenu()">👤 My Profile</a>
+          <button class="mobile-logout-btn" (click)="logout(); closeMenu()">🚪 Logout</button>
+        } @else {
+          <div class="mobile-menu-divider"></div>
+          <div class="mobile-auth-btns">
+            <a routerLink="/login" class="btn btn-outline btn-sm w-full" (click)="closeMenu()">Log In</a>
+            <a routerLink="/register" class="btn btn-primary btn-sm w-full" (click)="closeMenu()">Sign Up</a>
+          </div>
+        }
+      </div>
     </div>
 
     <div class="nav-actions">
@@ -36,10 +51,10 @@
           </div>
         </div>
       } @else {
-        <a routerLink="/login"    class="btn btn-outline btn-sm">Log In</a>
-        <a routerLink="/register" class="btn btn-primary btn-sm">Sign Up</a>
+        <a routerLink="/login" class="btn btn-outline btn-sm nav-login-btn">Log In</a>
+        <a routerLink="/register" class="btn btn-primary btn-sm nav-signup-btn">Sign Up</a>
       }
-      <button class="hamburger" (click)="toggleMenu()">
+      <button class="hamburger" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen" aria-label="Toggle navigation menu">
         <span></span><span></span><span></span>
       </button>
     </div>

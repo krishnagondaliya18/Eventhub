@@ -424,15 +424,31 @@
 }
 
 /* --- RESPONSIVE --- */
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .ai-chat-window {
-    width: calc(100vw - 24px);
-    right: 12px;
-    bottom: 16px;
-    height: 82vh;
+    width: calc(100vw - 20px);
+    right: 10px;
+    bottom: 14px;
+    height: 84vh;
+    max-height: 580px;
+    border-radius: 18px;
   }
   .ai-trigger-wrapper {
-    right: 16px;
-    bottom: 16px;
+    right: 14px;
+    bottom: 14px;
+  }
+  .ai-trigger-pill {
+    padding: 8px 14px;
+  }
+  .ai-chat-footer {
+    padding: 8px 10px;
+  }
+  .ai-input-field {
+    font-size: 15px !important;
+    padding: 9px 12px;
+  }
+  .ai-send-btn {
+    width: 38px;
+    height: 38px;
   }
 }

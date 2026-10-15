@@ -16,11 +16,39 @@
           <button class="filter-btn" [class.active]="filters.isOnline==='false'" (click)="filters.isOnline='false'; applyFilters()">OFFLINE</button>
         </div>
       </div>
+
+      <!-- Mobile Search & Filter Action Bar -->
+      <div class="mobile-filter-bar">
+        <div class="mobile-search-box">
+          <span class="material-icons search-ico">search</span>
+          <input
+            type="text"
+            placeholder="Search events, venue..."
+            [(ngModel)]="filters.search"
+            (input)="onSearchInput()"
+          />
+          @if (filters.search) {
+            <button class="btn-clear-search-mini" (click)="filters.search=''; applyFilters()">✕</button>
+          }
+        </div>
+        <button class="btn-toggle-filters" (click)="toggleMobileFilters()" [class.active]="showMobileFilters">
+          <span class="material-icons">tune</span>
+          <span>Filters</span>
+          @if (filters.category || filters.location || filters.budget) {
+            <span class="filter-active-dot"></span>
+          }
+        </button>
+      </div>
     </div>
   </div>
 
   <div class="container events-body">
-    <div class="sidebar">
+    <div class="sidebar" [class.mobile-open]="showMobileFilters">
+      <!-- Mobile Close Filters Header -->
+      <div class="mobile-filter-header">
+        <h4>Filters & Preferences</h4>
+        <button class="btn-close-filter" (click)="showMobileFilters=false">✕</button>
+      </div>
       <!-- Search Input -->
       <div class="filter-card">
         <h3>Search</h3>

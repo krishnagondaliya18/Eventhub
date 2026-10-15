@@ -23,6 +23,11 @@ export class EventsComponent implements OnInit {
   total = 0;
   page = 1;
   limit = 9;
+  showMobileFilters = false;
+
+  toggleMobileFilters() {
+    this.showMobileFilters = !this.showMobileFilters;
+  }
 
   filters = {
     category: '',

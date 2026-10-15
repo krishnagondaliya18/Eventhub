@@ -18,10 +18,16 @@ export class NavbarComponent {
   toggleMenu() { this.menuOpen = !this.menuOpen; }
   logout()     { this.auth.logout(); }
 
+  closeMenu()  { this.menuOpen = false; }
+
   @HostListener('document:click', ['$event'])
   onDocClick(e: MouseEvent) {
-    if (!(e.target as HTMLElement).closest('.user-dropdown')) {
+    const target = e.target as HTMLElement;
+    if (!target.closest('.user-dropdown')) {
       this.dropdownOpen = false;
+    }
+    if (!target.closest('.nav-links') && !target.closest('.hamburger')) {
+      this.menuOpen = false;
     }
   }
 }
