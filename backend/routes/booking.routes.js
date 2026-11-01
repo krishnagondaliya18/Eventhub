@@ -5,7 +5,7 @@ const Event    = require('../models/Event');
 const { protect, adminOnly } = require('../middleware/auth');
 const Razorpay = require('razorpay');
 const crypto   = require('crypto');
-const { sendBookingConfirmationEmail } = require('../utils/mailer');
+const { sendBookingConfirmationEmail, sendBookingCancellationEmail } = require('../utils/mailer');
 const { generateTicketPdf }           = require('../utils/ticketPdf');
 
 const getRazorpayInstance = () => {
@@ -54,8 +54,8 @@ router.post('/create-order', protect, async (req, res) => {
       keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_TSk0Vle1oG7U1A',
       amount: finalAmount,
       currency: 'INR',
-      directPaymentUrl: process.env.RAZORPAY_DIRECT_LINK || 'https://razorpay.me/@krishnakamleshbhaigondaliya',
-      merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'KRISHNA KAMLESHBHAI GONDALIYA'
+      directPaymentUrl: 'https://checkout.razorpay.com',
+      merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'EventHub'
     });
   } catch (err) {
     console.error('Razorpay Create Order Error:', err);
@@ -67,9 +67,8 @@ router.post('/create-order', protect, async (req, res) => {
 router.get('/payment-config', (req, res) => {
   res.json({
     success: true,
-    directPaymentUrl: process.env.RAZORPAY_DIRECT_LINK || 'https://razorpay.me/@krishnakamleshbhaigondaliya',
-    merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'KRISHNA KAMLESHBHAI GONDALIYA',
-    upiVpa: process.env.UPI_VPA || 'krishnakamleshbhaigondaliya@razorpay',
+    directPaymentUrl: 'https://checkout.razorpay.com',
+    merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'EventHub',
     keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_TSk0Vle1oG7U1A'
   });
 });
@@ -85,6 +84,13 @@ router.post('/verify-payment', protect, async (req, res) => {
       razorpay_signature
     } = req.body;
 
+    if (!eventId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required payment verification parameters'
+      });
+    }
+
     const qty = Math.max(1, Math.min(10, parseInt(quantity) || 1));
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
@@ -92,18 +98,58 @@ router.post('/verify-payment', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: `Only ${event.availableTickets} tickets available` });
     }
 
-    // Verify HMAC SHA256 signature
+    // Verify HMAC SHA256 signature using timing-safe comparison to prevent timing attacks
     const secret = process.env.RAZORPAY_KEY_SECRET || 'ZDSmneQYfMU6jOyhVVjpSxjc';
     const generatedSignature = crypto
       .createHmac('sha256', secret)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
-    if (generatedSignature !== razorpay_signature) {
+    let isMatch = false;
+    try {
+      isMatch = crypto.timingSafeEqual(
+        Buffer.from(generatedSignature, 'utf8'),
+        Buffer.from(razorpay_signature, 'utf8')
+      );
+    } catch {
+      isMatch = (generatedSignature === razorpay_signature);
+    }
+
+    if (!isMatch) {
       return res.status(400).json({ success: false, message: 'Payment verification failed: Invalid signature' });
     }
 
+    // Idempotency: Check if this payment was already processed to prevent duplicate orders
+    const existingBooking = await Booking.findOne({ razorpayPaymentId: razorpay_payment_id });
+    if (existingBooking) {
+      const populated = await Booking.findById(existingBooking._id)
+        .populate('event', 'title date location price image category isFree')
+        .populate('user',  'name email phone');
+      return res.status(200).json({
+        success: true,
+        message: 'Payment already verified and booking confirmed',
+        booking: populated
+      });
+    }
+
     const totalAmount = event.price * qty;
+
+    // Atomically decrement available tickets to guarantee no overselling under concurrent load
+    const updatedEvent = await Event.findOneAndUpdate(
+      { _id: event._id, availableTickets: { $gte: qty } },
+      {
+        $inc: { availableTickets: -qty, revenue: totalAmount },
+        $addToSet: { participants: req.user._id }
+      },
+      { new: true }
+    );
+
+    if (!updatedEvent) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tickets sold out! Please contact support for an immediate refund if payment was debited.'
+      });
+    }
 
     const booking = await Booking.create({
       user: req.user._id,
@@ -113,23 +159,16 @@ router.post('/verify-payment', protect, async (req, res) => {
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,
       razorpaySignature: razorpay_signature,
+      paymentMethod: 'Razorpay Online',
       paymentStatus: 'paid',
       status: 'confirmed'
     });
-
-    // Reduce available tickets and track revenue
-    event.availableTickets -= qty;
-    event.revenue = (event.revenue || 0) + totalAmount;
-    if (!event.participants.includes(req.user._id)) {
-      event.participants.push(req.user._id);
-    }
-    await event.save();
 
     const populated = await Booking.findById(booking._id)
       .populate('event', 'title date location price image category isFree')
       .populate('user',  'name email phone');
 
-    // Send instant confirmation email with attached PDF ticket
+    // Send instant confirmation email with attached PDF ticket asynchronously
     sendBookingConfirmationEmail({
       booking: populated,
       event: populated.event,
@@ -140,6 +179,173 @@ router.post('/verify-payment', protect, async (req, res) => {
   } catch (err) {
     console.error('Payment Verification Error:', err);
     res.status(500).json({ success: false, message: err.message || 'Payment verification failed' });
+  }
+});
+
+// POST /api/bookings/webhook — Razorpay Cloud Webhook Notification
+router.post('/webhook', async (req, res) => {
+  try {
+    const signature = req.headers['x-razorpay-signature'];
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET;
+
+    if (!signature || !webhookSecret) {
+      return res.status(400).json({ success: false, message: 'Missing webhook signature or secret' });
+    }
+
+    const rawBody = req.rawBody || JSON.stringify(req.body);
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(rawBody)
+      .digest('hex');
+
+    let isMatch = false;
+    try {
+      isMatch = crypto.timingSafeEqual(
+        Buffer.from(expectedSignature, 'utf8'),
+        Buffer.from(signature, 'utf8')
+      );
+    } catch {
+      isMatch = (expectedSignature === signature);
+    }
+
+    if (!isMatch) {
+      console.warn('[Razorpay Webhook] Invalid signature rejected');
+      return res.status(400).json({ success: false, message: 'Invalid webhook signature' });
+    }
+
+    const eventType = req.body.event;
+    const payload   = req.body.payload;
+
+    console.log(`[Razorpay Webhook] Processed event: ${eventType}`);
+
+    if (eventType === 'payment.captured' || eventType === 'order.paid') {
+      const payment   = payload?.payment?.entity;
+      const orderId   = payment?.order_id;
+      const paymentId = payment?.id;
+
+      if (paymentId) {
+        let booking = await Booking.findOne({
+          $or: [{ razorpayPaymentId: paymentId }, { razorpayOrderId: orderId }]
+        });
+
+        if (booking && booking.paymentStatus !== 'paid') {
+          booking.paymentStatus = 'paid';
+          booking.status = 'confirmed';
+          if (!booking.razorpayPaymentId) booking.razorpayPaymentId = paymentId;
+          await booking.save();
+
+          const populated = await Booking.findById(booking._id)
+            .populate('event', 'title date location price image category isFree')
+            .populate('user',  'name email phone');
+
+          sendBookingConfirmationEmail({
+            booking: populated,
+            event: populated.event,
+            user: populated.user
+          }).catch(mErr => console.error('[WEBHOOK CONFIRMATION EMAIL ERROR]', mErr.message));
+
+          console.log(`[Razorpay Webhook] Booking ${booking._id} status updated to paid & confirmation email sent`);
+        }
+      }
+    } else if (eventType === 'payment.failed') {
+      const payment = payload?.payment?.entity;
+      console.warn(`[Razorpay Webhook] Payment failed: ${payment?.id} - Reason: ${payment?.error_description}`);
+    } else if (eventType === 'refund.processed') {
+      const refund = payload?.refund?.entity;
+      if (refund?.payment_id) {
+        const b = await Booking.findOneAndUpdate(
+          { razorpayPaymentId: refund.payment_id },
+          { paymentStatus: 'refunded', status: 'cancelled', refundId: refund.id, cancelledAt: new Date() },
+          { new: true }
+        )
+          .populate('event', 'title date location price image category isFree')
+          .populate('user',  'name email phone');
+
+        if (b) {
+          sendBookingCancellationEmail({
+            booking: b,
+            event: b.event,
+            user: b.user,
+            reason: 'Refund confirmed by Razorpay'
+          }).catch(mErr => console.error('[WEBHOOK REFUND CANCELLATION EMAIL ERROR]', mErr.message));
+        }
+
+        console.log(`[Razorpay Webhook] Payment ${refund.payment_id} marked as refunded & cancellation email sent`);
+      }
+    }
+
+    res.json({ status: 'ok' });
+  } catch (err) {
+    console.error('[Razorpay Webhook Error]:', err.message);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// POST /api/bookings/:id/refund — Process Razorpay Refund
+router.post('/:id/refund', protect, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+
+    const isOwner = booking.user.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Permission denied' });
+    }
+
+    if (booking.paymentStatus === 'refunded') {
+      return res.status(400).json({ success: false, message: 'Booking is already refunded' });
+    }
+
+    if (booking.paymentStatus !== 'paid' || !booking.razorpayPaymentId) {
+      return res.status(400).json({ success: false, message: 'No paid online transaction found to refund' });
+    }
+
+    const rzp = getRazorpayInstance();
+    const refundAmountPaise = Math.round(booking.totalAmount * 100);
+
+    const refund = await rzp.payments.refund(booking.razorpayPaymentId, {
+      amount: refundAmountPaise,
+      notes: {
+        reason: req.body.reason || 'Booking cancellation refund',
+        bookingId: booking._id.toString(),
+        userId: req.user._id.toString()
+      }
+    });
+
+    booking.paymentStatus = 'refunded';
+    booking.status        = 'cancelled';
+    booking.refundId      = refund.id;
+    booking.refundAmount  = booking.totalAmount;
+    booking.cancelledAt   = new Date();
+    await booking.save();
+
+    // Restore event tickets
+    await Event.findByIdAndUpdate(booking.event, {
+      $inc: { availableTickets: booking.quantity, revenue: -booking.totalAmount }
+    });
+
+    const populated = await Booking.findById(booking._id)
+      .populate('event', 'title date location price image category isFree')
+      .populate('user',  'name email phone');
+
+    // Send cancellation & refund email notification
+    sendBookingCancellationEmail({
+      booking: populated,
+      event: populated.event,
+      user: populated.user,
+      reason: req.body.reason || 'Booking cancellation & refund processed'
+    }).catch(mErr => console.error('[REFUND CANCELLATION EMAIL ERROR]', mErr.message));
+
+    res.json({
+      success: true,
+      message: 'Refund processed successfully',
+      refund,
+      booking: populated
+    });
+  } catch (err) {
+    console.error('Razorpay Refund Error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Refund processing failed' });
   }
 });
 
@@ -173,10 +379,10 @@ router.post('/', protect, async (req, res) => {
       quantity: qty,
       totalAmount,
       upiId: upiId || paymentDetails?.upiId || '',
-      paymentMethod: event.isFree ? 'Free Registration' : (paymentMethod || 'Razorpay Direct (Krishna Kamleshbhai Gondaliya)'),
+      paymentMethod: event.isFree ? 'Free Registration' : (paymentMethod || 'Razorpay Online Checkout'),
       paymentDetails: {
         ...paymentDetails,
-        merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'KRISHNA KAMLESHBHAI GONDALIYA'
+        merchantName: process.env.RAZORPAY_MERCHANT_NAME || 'EventHub'
       },
       razorpayOrderId: razorpayOrderId || '',
       razorpayPaymentId: razorpayPaymentId || `pay_rzp_${Date.now()}`,
@@ -255,9 +461,14 @@ router.get('/my', protect, async (req, res) => {
 // PUT /api/bookings/:id/cancel — cancel booking
 router.put('/:id/cancel', protect, async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findById(req.params.id)
+      .populate('event', 'title date location price image category isFree')
+      .populate('user',  'name email phone');
+
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
-    if (booking.user.toString() !== req.user._id.toString()) {
+    
+    const bookingUserId = booking.user?._id ? booking.user._id.toString() : booking.user.toString();
+    if (bookingUserId !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: 'Permission denied' });
     }
     if (booking.status === 'cancelled') {
@@ -269,9 +480,18 @@ router.put('/:id/cancel', protect, async (req, res) => {
     await booking.save();
 
     // Restore tickets
-    await Event.findByIdAndUpdate(booking.event, {
+    const eventId = booking.event?._id || booking.event;
+    await Event.findByIdAndUpdate(eventId, {
       $inc: { availableTickets: booking.quantity }
     });
+
+    // Send cancellation email notification asynchronously
+    sendBookingCancellationEmail({
+      booking,
+      event: booking.event,
+      user: booking.user,
+      reason: req.body.reason || 'Cancelled by attendee'
+    }).catch(mErr => console.error('[CANCELLATION EMAIL ERROR]', mErr.message));
 
     res.json({ success: true, message: 'Booking cancelled successfully', booking });
   } catch (err) {

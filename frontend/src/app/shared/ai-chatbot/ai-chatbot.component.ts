@@ -31,7 +31,7 @@ export class AiChatbotComponent {
   messages: ChatMessage[] = [
     {
       sender: 'ai',
-      text: 'Hello! 👋 Welcome to **EventHub Help & Support**.\n\nI can answer all your questions about:\n- 🎟️ **Event Booking & Pricing:** Booking steps, locked fixed price, tickets limits (1–10)\n- 💳 **Payments & UPI:** GPay, PhonePe, Paytm, BHIM to gondaliyakishan839@okaxis, auto-scan pull QR, Razorpay\n- 📄 **Official PDF Tickets:** Instant digital admission pass with gate entry QR code\n- ⏰ **24-Hour Event Reminders:** Automated reminder emails 1 day before the event\n- 💸 **Refund & Cancellation Policy:** 100% refund (>48h), 50% refund (24-48h), organizer cancellation rules\n- 🎪 **Hosting Events as an Organizer:** Creating events, approval process, participant rosters\n- 📜 **Platform Rules, Terms & Privacy:** Gate security rules, terms of service, customer support\n\nHow can I help you today?',
+      text: 'Hello! 👋 Welcome to **EventHub Help & Support**.\n\nI can answer all your questions about:\n- 🎟️ **Event Booking & Pricing:** Booking steps, real-time pricing, tickets limits (1–10)\n- 💳 **Payments & Checkout:** Official Razorpay Gateway (UPI, GPay, PhonePe, Paytm, Cards, Netbanking)\n- 📄 **Official PDF Tickets:** Instant digital admission pass with gate entry QR code\n- ⏰ **24-Hour Event Reminders:** Automated reminder emails 1 day before the event\n- 💸 **Refund & Cancellation Policy:** 100% refund (>48h), 50% refund (24-48h), organizer cancellation rules\n- 🎪 **Hosting Events as an Organizer:** Creating events, approval process, participant rosters\n- 📜 **Platform Rules, Terms & Privacy:** Gate security rules, terms of service, customer support\n\nHow can I help you today?',
       time: this.formatTime()
     }
   ];

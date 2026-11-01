@@ -25,7 +25,7 @@ router.post('/contact', async (req, res) => {
       status:  'pending'
     });
 
-    // Asynchronously dispatch notification email to admin (gondaliyakishan839@gmail.com)
+    // Asynchronously dispatch notification email to admin support
     sendContactNotificationEmail({
       name:     item.name,
       email:    item.email,
@@ -80,7 +80,7 @@ router.post('/', async (req, res) => {
       status:  'pending'
     });
 
-    // Send email notification to admin (gondaliyakishan839@gmail.com)
+    // Send email notification to admin support
     sendContactNotificationEmail({
       name:     item.name,
       email:    item.email,

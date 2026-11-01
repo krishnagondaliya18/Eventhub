@@ -190,7 +190,7 @@ async function generateTicketPdf({ booking, event, user }) {
       doc.fillColor('#94a3b8')
          .fontSize(7.5)
          .font('Helvetica')
-         .text('IMPORTANT TERMS: This admission pass is non-transferable and subject to EventHub platform guidelines. Attendees must carry a valid photo ID matching the attendee name. Cancellations requested >48h prior to event are eligible for full refund under platform policy. For support, email gondaliyakishan839@gmail.com.', 60, y + 14, { width: 475, align: 'center', lineGap: 3 });
+         .text('IMPORTANT TERMS: This admission pass is non-transferable and subject to EventHub platform guidelines. Attendees must carry a valid photo ID matching the attendee name. Cancellations requested >48h prior to event are eligible for full refund under platform policy. For support, email support@eventhub.com.', 60, y + 14, { width: 475, align: 'center', lineGap: 3 });
 
       doc.end();
     } catch (err) {

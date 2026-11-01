@@ -24,30 +24,16 @@ export class EventDetailComponent implements OnInit {
   processingMsg = 'Processing Payment...';
   user: any     = null;
 
-  // Checkout Steps: 'payment' | 'gateway' | 'confirmation'
-  checkoutStep: 'payment' | 'gateway' | 'confirmation' = 'payment';
+  // Checkout Steps: 'payment' | 'confirmation'
+  checkoutStep: 'payment' | 'confirmation' = 'payment';
   confirmedBooking: any = null;
-
-  // Direct Razorpay Account Transfer (Krishna Kamleshbhai Gondaliya)
-  directPaymentUrl = 'https://razorpay.me/@krishnakamleshbhaigondaliya';
-  merchantName = 'Krishna Gondaliya';
-  upiVpa = 'gondaliyakishan839@okaxis';
-  lockedUpiUri = '';
-  sanitizedUpiUri: SafeResourceUrl | null = null;
-  copiedUpi = false;
+  razorpayKeyId: string = 'rzp_test_TSk0Vle1oG7U1A';
   downloadingTicket = false;
-  paymentRefId = '';
-  showEmbedFrame = false;
-  sanitizedPaymentUrl: SafeResourceUrl | null = null;
-  qrCodeUrl = '';
 
   // Attendee Information
   firstName = 'Alex';
   lastName  = 'Rivera';
   email     = 'alex.rivera@example.com';
-
-  // Payment Options
-  selectedMethod: 'upi' | 'card' | 'netbanking' | 'wallet' = 'upi';
 
   comments:    any[]  = [];
   commentText  = '';
@@ -91,9 +77,7 @@ export class EventDetailComponent implements OnInit {
     // Load dynamic Razorpay payment configuration if configured
     this.http.get<any>('/api/bookings/payment-config').subscribe({
       next: (cfg) => {
-        if (cfg?.directPaymentUrl) this.directPaymentUrl = cfg.directPaymentUrl;
-        if (cfg?.merchantName) this.merchantName = cfg.merchantName;
-        if (cfg?.upiVpa) this.upiVpa = cfg.upiVpa;
+        if (cfg?.keyId) this.razorpayKeyId = cfg.keyId;
       },
       error: () => {}
     });
@@ -143,7 +127,6 @@ export class EventDetailComponent implements OnInit {
     this.checkoutStep = 'payment';
     this.quantity = 1;
     this.processing = false;
-    this.selectedMethod = 'upi';
   }
 
   closeOutside(e: MouseEvent): void {
@@ -158,23 +141,16 @@ export class EventDetailComponent implements OnInit {
     if (this.quantity < max) this.quantity++;
   }
 
-  getMethodTitle(m: string): string {
-    switch (m) {
-      case 'upi':        return 'UPI (GPay, PhonePe, Paytm)';
-      case 'card':       return 'Cards (Visa, Mastercard, RuPay)';
-      case 'netbanking': return 'Netbanking (All Indian Banks)';
-      case 'wallet':     return 'Wallets (Mobikwik, Freecharge)';
-      default:           return 'Online Payment';
-    }
-  }
-
-  processSelectedPayment(): void {
-    if (!this.event) return;
-    this.payWithRazorpay();
-  }
-
   bookFree(): void {
+    const token = localStorage.getItem('token');
+    if (!token || token === 'null' || token === 'undefined') {
+      alert('Please login to register for this event.');
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+
     this.processing = true;
+    this.processingMsg = 'Registering Free Ticket...';
     this.http.post<any>('/api/bookings', {
       eventId:       this.event._id,
       quantity:      1,
@@ -185,151 +161,165 @@ export class EventDetailComponent implements OnInit {
         this.alreadyBooked = true;
         this.confirmedBooking = res.booking;
         this.checkoutStep = 'confirmation';
+        this.showModal = true;
       },
       error: (err: any) => {
         this.processing = false;
-        alert('Error: ' + (err?.error?.message || 'Try again.'));
+        alert('Registration Error: ' + (err?.error?.message || 'Could not complete free registration.'));
       }
     });
   }
 
-  getSelectedMethodName(): string {
-    switch (this.selectedMethod) {
-      case 'upi': return 'UPI';
-      case 'card': return 'Card';
-      case 'netbanking': return 'Netbanking';
-      case 'wallet': return 'Wallet';
-      default: return 'Online';
-    }
+  // Dynamically ensure the official Razorpay Checkout SDK is loaded
+  loadRazorpayScript(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (typeof (window as any).Razorpay !== 'undefined') {
+        resolve(true);
+        return;
+      }
+      const existing = document.querySelector('script[src*="checkout.razorpay.com"]');
+      if (existing) {
+        existing.addEventListener('load', () => resolve(true));
+        existing.addEventListener('error', () => resolve(false));
+        // In case it already loaded
+        setTimeout(() => resolve(typeof (window as any).Razorpay !== 'undefined'), 500);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
   }
 
-  proceedToGateway(): void {
+  // Directly initiate Razorpay Order and open official Razorpay Checkout popup
+  async payWithRazorpay(): Promise<void> {
     if (!this.event) return;
-    if (!this.firstName?.trim() || !this.email?.trim()) {
-      alert('Please fill in your name and email address.');
+
+    const token = localStorage.getItem('token');
+    if (!token || token === 'null' || token === 'undefined') {
+      alert('Please login to book tickets.');
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;
     }
-    this.sanitizedPaymentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.directPaymentUrl);
 
-    // NPCI UPI Pull-type specification with fixed locked amount
-    const lockedAmount = this.finalTotal.toFixed(2);
-    const note = encodeURIComponent(`EventHub Ticket: ${this.event.title || 'Event Pass'}`);
-    const payee = encodeURIComponent(this.merchantName);
-    this.lockedUpiUri = `upi://pay?pa=${this.upiVpa}&pn=${payee}&am=${lockedAmount}&cu=INR&tn=${note}`;
-    this.sanitizedUpiUri = this.sanitizer.bypassSecurityTrustUrl(this.lockedUpiUri);
-
-    // Dynamic QR code for camera / UPI scanning with fixed non-editable amount
-    this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=8&data=${encodeURIComponent(this.lockedUpiUri)}`;
-    this.checkoutStep = 'gateway';
-  }
-
-  copyUpiId(): void {
-    if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(this.upiVpa).then(() => {
-        this.copiedUpi = true;
-        setTimeout(() => this.copiedUpi = false, 2500);
-      }).catch(() => {
-        this.copiedUpi = true;
-        setTimeout(() => this.copiedUpi = false, 2500);
-      });
-    } else {
-      this.copiedUpi = true;
-      setTimeout(() => this.copiedUpi = false, 2500);
-    }
-  }
-
-  openDirectPaymentWindow(): void {
-    window.open(this.directPaymentUrl, '_blank', 'noopener,noreferrer');
-  }
-
-  toggleEmbedFrame(): void {
-    this.showEmbedFrame = !this.showEmbedFrame;
-  }
-
-  confirmDirectBooking(): void {
-    if (!this.event) return;
     this.processing = true;
-    this.processingMsg = 'Confirming Booking & QR Ticket...';
+    this.processingMsg = 'Opening Razorpay...';
 
-    const pMethod = `Razorpay Direct (${this.getSelectedMethodName()})`;
-    const refId = this.paymentRefId.trim() || ('RZP-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+    // Step 1: Ensure Razorpay SDK is ready
+    const isReady = await this.loadRazorpayScript();
+    if (!isReady || typeof (window as any).Razorpay === 'undefined') {
+      this.processing = false;
+      alert('Unable to load Razorpay payment gateway. Please disable ad-blockers and refresh the page.');
+      return;
+    }
 
-    this.http.post<any>('/api/bookings', {
-      eventId:       this.event._id,
-      quantity:      this.quantity,
-      paymentMethod: pMethod,
-      razorpayPaymentId: refId,
-      totalAmount:   this.finalTotal,
-      paymentDetails: {
-        merchant: this.merchantName,
-        paymentMethod: this.getSelectedMethodName(),
-        attendee: `${this.firstName} ${this.lastName}`.trim(),
-        email: this.email,
-        directTransfer: true
-      }
+    // Step 2: Create authentic Razorpay order on backend
+    this.http.post<any>('/api/bookings/create-order', {
+      eventId:  this.event._id,
+      quantity: this.quantity
     }).subscribe({
-      next: (res: any) => {
-        this.processing = false;
-        this.confirmedBooking = res.booking || {
-          bookingId:   'EH-' + Date.now().toString().slice(-6),
-          event:       this.event,
-          quantity:    this.quantity,
-          totalAmount: this.finalTotal,
-          createdAt:   new Date()
+      next: (orderRes: any) => {
+        const order = orderRes.order;
+        const keyId = orderRes.keyId || this.razorpayKeyId || 'rzp_test_TSk0Vle1oG7U1A';
+
+        const userName    = this.user?.name || (this.firstName + ' ' + this.lastName).trim() || 'Attendee';
+        const userEmail   = this.user?.email || this.email || 'user@example.com';
+        const userContact = this.user?.phone || '9999999999';
+
+        // Step 3: Configure Razorpay Checkout options
+        const rzpOptions = {
+          key:         keyId,
+          amount:      order.amount,
+          currency:    order.currency || 'INR',
+          name:        'EventHub',
+          description: `${this.quantity} Ticket(s) for ${this.event.title}`,
+          image:       'https://cdn.razorpay.com/static/assets/logo/payment.svg',
+          order_id:    order.id,
+          handler: (response: any) => {
+            // Callback executed by Razorpay upon successful payment completion
+            this.verifyPaymentOnBackend(response);
+          },
+          prefill: {
+            name:    userName,
+            email:   userEmail,
+            contact: userContact
+          },
+          notes: {
+            eventId:    this.event._id,
+            eventTitle: this.event.title,
+            quantity:   this.quantity
+          },
+          theme: {
+            color: '#1b64da'
+          },
+          modal: {
+            ondismiss: () => {
+              this.processing = false;
+              console.log('[Razorpay] Payment window closed by user');
+            }
+          }
         };
-        this.checkoutStep = 'confirmation';
-        this.alreadyBooked = true;
+
+        const rzp = new (window as any).Razorpay(rzpOptions);
+
+        rzp.on('payment.failed', (failRes: any) => {
+          this.processing = false;
+          const desc = failRes?.error?.description || 'Payment was declined or cancelled.';
+          alert(`Payment Failed: ${desc}`);
+        });
+
+        // Step 4: Open Razorpay modal directly
+        this.processing = false;
+        rzp.open();
       },
       error: (err: any) => {
         this.processing = false;
+        console.error('Razorpay Create Order Failed:', err);
         if (err?.status === 401 || err?.error?.message === 'Token invalid' || err?.error?.message === 'Not authorized, no token') {
-          alert('Login Session Expired. Please login again.');
+          alert('Your login session has expired. Please log in again.');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          this.showModal = false;
           this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
           return;
         }
-        alert('Booking Error: ' + (err?.error?.message || 'Could not verify booking. Please try again.'));
+        alert('Order Initiation Error: ' + (err?.error?.message || 'Could not initiate Razorpay order. Please try again.'));
       }
     });
   }
 
-  payWithRazorpay(): void {
-    this.proceedToGateway();
-  }
+  // Step 5: Backend verifies HMAC SHA256 signature and confirms booking
+  verifyPaymentOnBackend(response: any): void {
+    this.processing = true;
+    this.processingMsg = 'Verifying Payment & Confirming Ticket...';
 
-  processFallbackDirectPayment(): void {
-    this.processingMsg = 'Finalizing Booking...';
-    this.http.post<any>('/api/bookings', {
-      eventId:       this.event._id,
-      quantity:      this.quantity,
-      paymentMethod: this.getMethodTitle(this.selectedMethod),
-      totalAmount:   this.finalTotal
+    this.http.post<any>('/api/bookings/verify-payment', {
+      eventId:             this.event._id,
+      quantity:            this.quantity,
+      razorpay_order_id:   response.razorpay_order_id,
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_signature:  response.razorpay_signature
     }).subscribe({
       next: (res: any) => {
         this.processing = false;
-        this.confirmedBooking = res.booking || {
-          bookingId:   'TRX-' + Math.floor(1000 + Math.random() * 9000),
-          event:       this.event,
-          quantity:    this.quantity,
-          totalAmount: this.finalTotal,
-          createdAt:   new Date()
-        };
-        this.checkoutStep = 'confirmation';
         this.alreadyBooked = true;
+        this.confirmedBooking = res.booking;
+        this.checkoutStep = 'confirmation';
+        this.showModal = true;
       },
       error: (err: any) => {
         this.processing = false;
+        console.error('Payment Verification Failed:', err);
         if (err?.status === 401 || err?.error?.message === 'Token invalid' || err?.error?.message === 'Not authorized, no token') {
-          alert('Login Session Expired');
+          alert('Your login session has expired. Please log in again.');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          this.showModal = false;
           this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
           return;
         }
-        alert('Booking Error: ' + (err?.error?.message || 'Please check your connection and try again.'));
+        alert('Verification Error: ' + (err?.error?.message || 'Payment signature could not be verified by server.'));
       }
     });
   }

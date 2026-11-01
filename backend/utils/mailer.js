@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'gondaliyakishan839@gmail.com';
+const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'support@eventhub.com';
 
 /**
  * Creates nodemailer transporter based on environment variables.
@@ -30,6 +30,25 @@ function getTransporter() {
     service: 'gmail',
     auth: { user, pass }
   });
+}
+
+/**
+ * Resolves recipient email. If the domain is a dummy development domain
+ * (e.g., eventhub.com, example.com, test.com), redirects to the configured
+ * sender/developer email (EMAIL_USER) to prevent Gmail DNS bounce errors.
+ */
+function resolveRecipientEmail(email) {
+  if (!email || typeof email !== 'string') return null;
+  const dummyDomains = ['eventhub.com', 'example.com', 'test.com'];
+  const parts = email.split('@');
+  if (parts.length === 2 && dummyDomains.includes(parts[1].toLowerCase().trim())) {
+    const fallback = process.env.EMAIL_USER || process.env.SMTP_USER;
+    if (fallback) {
+      console.log(`[MAIL ROUTER] Redirecting test email from dummy address ${email} -> ${fallback}`);
+      return fallback;
+    }
+  }
+  return email;
 }
 
 /**
@@ -167,7 +186,8 @@ async function sendBookingConfirmationEmail({ booking, event, user }) {
   const { generateTicketPdf } = require('./ticketPdf');
   const QRCode = require('qrcode');
 
-  const recipientEmail = user?.email || booking?.paymentDetails?.email;
+  const rawEmail       = user?.email || booking?.paymentDetails?.email;
+  const recipientEmail = resolveRecipientEmail(rawEmail);
   const attendeeName   = user?.name || booking?.paymentDetails?.attendee || 'Valued Attendee';
 
   if (!recipientEmail) {
@@ -347,7 +367,8 @@ async function sendEventReminderEmail({ booking, event, user }) {
   const { generateTicketPdf } = require('./ticketPdf');
   const QRCode = require('qrcode');
 
-  const recipientEmail = user?.email || booking?.paymentDetails?.email;
+  const rawEmail       = user?.email || booking?.paymentDetails?.email;
+  const recipientEmail = resolveRecipientEmail(rawEmail);
   const attendeeName   = user?.name || booking?.paymentDetails?.attendee || 'Attendee';
 
   if (!recipientEmail) return { sent: false, reason: 'No recipient email' };
@@ -462,9 +483,149 @@ async function sendEventReminderEmail({ booking, event, user }) {
   }
 }
 
+/**
+ * Sends booking cancellation & refund notification email to attendee.
+ * @param {Object} options
+ * @param {Object} options.booking - Populated Booking document
+ * @param {Object} options.event - Populated Event document
+ * @param {Object} options.user - User document / recipient
+ * @param {string} [options.reason] - Cancellation reason
+ */
+async function sendBookingCancellationEmail(options) {
+  const { booking, event, user, reason = 'Attendee requested cancellation' } = options;
+  const rawEmail       = user?.email || booking?.paymentDetails?.email || booking?.email;
+  const recipientEmail = resolveRecipientEmail(rawEmail);
+  const attendeeName   = user?.name || booking?.paymentDetails?.attendee || 'Valued Guest';
+
+  if (!recipientEmail) {
+    console.warn('[CANCELLATION MAIL] No recipient email found for booking', booking?.bookingId);
+    return { sent: false, reason: 'No recipient email' };
+  }
+
+  const transporter = getTransporter();
+  const eventDateStr = event?.date
+    ? new Date(event.date).toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      })
+    : 'Scheduled Date';
+  const cancelDateStr = new Date(booking?.cancelledAt || Date.now()).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+  const isPaid = booking?.paymentStatus === 'paid' || booking?.paymentStatus === 'refunded';
+  const refundAmount = booking?.refundAmount || booking?.totalAmount || 0;
+
+  const htmlContent = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b0f19; margin: 0; padding: 24px; color: #f1f5f9; }
+      .container { max-width: 620px; margin: 0 auto; background: #111827; border-radius: 16px; overflow: hidden; border: 1px solid #1f2937; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+      .header { background: linear-gradient(135deg, #991b1b 0%, #ef4444 100%); padding: 32px 24px; text-align: center; }
+      .header h1 { margin: 0; font-size: 24px; color: #ffffff; font-weight: 800; letter-spacing: -0.5px; }
+      .header p { margin: 8px 0 0; font-size: 14px; color: #fee2e2; }
+      .content { padding: 28px 24px; }
+      .cancel-badge { display: inline-block; background: #fee2e2; color: #991b1b; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; margin-bottom: 16px; }
+      .event-card { background: #1f2937; border-radius: 12px; padding: 20px; margin-bottom: 24px; border-left: 4px solid #ef4444; }
+      .event-title { font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
+      .event-meta { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+      .grid-table { width: 100%; border-collapse: collapse; }
+      .grid-table td { padding: 8px 0; border-bottom: 1px solid #374151; font-size: 14px; }
+      .grid-table td.lbl { color: #9ca3af; width: 40%; }
+      .grid-table td.val { color: #ffffff; font-weight: 600; text-align: right; width: 60%; }
+      .refund-box { background: #182234; border: 1px solid #2563eb; border-radius: 10px; padding: 16px; margin: 20px 0; }
+      .refund-box h4 { margin: 0 0 6px; font-size: 14px; color: #60a5fa; }
+      .refund-box p { margin: 0; font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+      .btn-wrap { text-align: center; margin: 24px 0 10px; }
+      .btn { display: inline-block; background: #374151; color: #ffffff !important; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; }
+      .footer { background: #0b0f19; padding: 18px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #1f2937; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>EventHub Booking Cancelled</h1>
+        <p>Your ticket reservation has been cancelled</p>
+      </div>
+      <div class="content">
+        <span class="cancel-badge">Cancelled</span>
+        <p style="margin: 0 0 18px; font-size: 15px; color: #e2e8f0;">Hello <strong>${attendeeName}</strong>, your booking for <strong>${event?.title || 'Event'}</strong> has been cancelled.</p>
+
+        <div class="event-card">
+          <div class="event-title">${event?.title || 'Event Booking'}</div>
+          <div class="event-meta">${(event?.category || 'Event').toUpperCase()} &bull; ${event?.location || 'Venue'}</div>
+          <table class="grid-table">
+            <tr>
+              <td class="lbl">Booking Reference</td>
+              <td class="val" style="color: #f87171; font-family: monospace;">#${booking?.bookingId}</td>
+            </tr>
+            <tr>
+              <td class="lbl">Tickets Cancelled</td>
+              <td class="val">${booking?.quantity || 1} Ticket${(booking?.quantity || 1) > 1 ? 's' : ''}</td>
+            </tr>
+            <tr>
+              <td class="lbl">Event Date</td>
+              <td class="val">${eventDateStr}</td>
+            </tr>
+            <tr>
+              <td class="lbl">Cancellation Date</td>
+              <td class="val">${cancelDateStr}</td>
+            </tr>
+            <tr>
+              <td class="lbl">Reason</td>
+              <td class="val">${reason}</td>
+            </tr>
+          </table>
+        </div>
+
+        ${isPaid && refundAmount > 0 ? `
+        <div class="refund-box">
+          <h4>💳 Refund Status: Initiated</h4>
+          <p>A refund of <strong>₹${refundAmount}</strong> has been initiated via Razorpay to your original payment method. Depending on your bank, it will reflect in your account within <strong>5 to 7 business days</strong>.</p>
+        </div>` : `
+        <div class="refund-box">
+          <h4>Free Ticket Cancellation</h4>
+          <p>Your complimentary ticket allocation has been released and returned to the event's available capacity.</p>
+        </div>`}
+
+        <div class="btn-wrap">
+          <a href="http://localhost:4200/events" class="btn">Explore Other Events &rarr;</a>
+        </div>
+      </div>
+      <div class="footer">
+        EventHub Ticketing Platform &bull; Need assistance? Contact us at support@eventhub.com
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
+
+  if (!transporter) {
+    console.log(`[MAIL MOCK] Cancellation email logged for ${recipientEmail} (Booking #${booking?.bookingId})`);
+    return { sent: false, reason: 'No live SMTP configured' };
+  }
+
+  try {
+    const mailOptions = {
+      from: `"EventHub Support" <${process.env.SMTP_USER || process.env.EMAIL_USER}>`,
+      to: recipientEmail,
+      subject: `❌ Booking Cancelled: ${event?.title || 'Event'} (Pass #${booking?.bookingId})`,
+      html: htmlContent
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[CANCELLATION MAIL SUCCESS] Sent to ${recipientEmail} (${info.messageId})`);
+    return { sent: true, messageId: info.messageId };
+  } catch (error) {
+    console.error(`[CANCELLATION MAIL ERROR] Failed to send to ${recipientEmail}:`, error.message);
+    return { sent: false, error: error.message };
+  }
+}
+
 module.exports = {
   ADMIN_NOTIFICATION_EMAIL,
   sendContactNotificationEmail,
   sendBookingConfirmationEmail,
+  sendBookingCancellationEmail,
   sendEventReminderEmail
 };

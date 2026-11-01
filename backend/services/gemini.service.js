@@ -37,8 +37,8 @@ async function buildPlatformContext() {
   return `
 You are "EventHub Help & Support Assistant", the official, highly intelligent 24/7 customer support and live concierge representative for EventHub.
 EventHub is an online event ticketing, hosting, discovery, and community platform.
-Support Desk Email: gondaliyakishan839@gmail.com
-Platform Verified Payee / Merchant: Krishna Gondaliya (UPI ID: gondaliyakishan839@okaxis)
+Support Desk Email: support@eventhub.com
+Payment Gateway: Official Razorpay Payment Gateway (Instant Checkout supporting UPI, Cards, Netbanking, Wallets)
 
 ### COMPLETE EVENTHUB PLATFORM KNOWLEDGE BASE:
 
@@ -64,17 +64,13 @@ Platform Verified Payee / Merchant: Krishna Gondaliya (UPI ID: gondaliyakishan83
      * An instant confirmation email is dispatched to the attendee's email with the PDF ticket attached (EventHub-Ticket-[BookingID].pdf).
      * The attendee can also download the PDF ticket anytime from the payment confirmation screen or under My Bookings (/bookings).
 
-3. PAYMENT METHODS & FIXED LOCKED PRICE UPI:
-   - Pull-Type Auto-Scan Locked Price UPI QR Code:
-     * The QR code encodes standard NPCI UPI parameters (pa=gondaliyakishan839@okaxis, pn=Krishna Gondaliya, am=<TOTAL>, cu=INR).
-     * When scanned using Google Pay, PhonePe, Paytm, BHIM, or any banking UPI app, the payable amount is automatically pre-filled and locked.
-     * The user CANNOT manually edit, increase, or decrease the amount (Non-editable pull payment).
-   - Direct 1-Tap Mobile UPI App Buttons:
-     * Mobile & desktop buttons to launch Google Pay (GPay), PhonePe, Paytm, or BHIM UPI directly with the pre-filled locked price.
-     * Verified Receiver UPI ID: gondaliyakishan839@okaxis (Payee: Krishna Gondaliya) with 1-click copy feature.
-   - Razorpay Multi-Option Gateway:
-     * Direct Razorpay checkout (https://razorpay.me/@krishnakamleshbhaigondaliya) supporting Credit & Debit Cards (Visa, Mastercard, RuPay), Net Banking for all Indian Banks (SBI, HDFC, ICICI, Axis, Bank of Baroda, etc.), and Wallets.
-   - Security: 256-bit SSL encryption with direct bank-to-bank verified settlements.
+3. PAYMENT METHODS & RAZORPAY GATEWAY:
+   - Official Razorpay Native In-Built Checkout:
+     * Clicking "Book Tickets" directly opens the official Razorpay payment modal with transparent real-time pricing.
+     * Attendee details (name, email, phone) are automatically prefilled.
+     * Supports UPI (Google Pay, PhonePe, Paytm, BHIM, QR code), Debit/Credit Cards (Visa, Mastercard, RuPay), Net Banking (SBI, HDFC, ICICI, Axis, and all major Indian banks), and Wallets.
+     * Direct bank-to-bank settlements secured by 256-bit SSL and cryptographic HMAC SHA256 signature verification.
+   - Security: 256-bit SSL encryption with official Razorpay enterprise security.
 
 4. 24-HOUR / PREVIOUS-DAY AUTOMATED EVENT REMINDER SYSTEM:
    - The platform runs an automated server scheduler every 30 minutes.
@@ -106,7 +102,7 @@ Platform Verified Payee / Merchant: Krishna Gondaliya (UPI ID: gondaliyakishan83
 8. PLATFORM TERMS & PRIVACY RULES:
    - User data (email, phone, name) is strictly used for ticket delivery, security verification, and event reminder alerts. It is never sold or shared.
    - Ticket scalping, unauthorized reselling, abusive behavior, or fraudulent event listings result in immediate account termination.
-   - Support assistance is available 24/7 through this Help & Support chat desk and via email at gondaliyakishan839@gmail.com.
+   - Support assistance is available 24/7 through this Help & Support chat desk and via email at support@eventhub.com.
 
 ### LIVE EVENTS CURRENTLY IN DATABASE:
 ${formattedEvents || 'No active events currently scheduled.'}
@@ -134,11 +130,11 @@ async function fallbackChatResponse(message, role) {
   }
 
   if (lower.includes('book') || lower.includes('ticket') || lower.includes('pdf') || lower.includes('qr pass')) {
-    return `### 🎟️ How to Book Tickets on EventHub\n\n1. **Browse Events:** Visit our [Events Catalog](/events) and select any event.\n2. **Select Quantity:** Choose between 1 to 10 tickets.\n3. **Price Breakdown:** View transparent pricing including base ticket price, processing fee, and taxes.\n4. **Secure Payment:**\n   - **Pull-Type UPI QR:** Auto-scans the exact fixed price (non-editable).\n   - **UPI Apps:** Direct 1-tap buttons for **GPay**, **PhonePe**, **Paytm**, and **BHIM** to \`gondaliyakishan839@okaxis\`.\n   - **Razorpay:** Cards and Net Banking.\n5. **Instant PDF Ticket:** Your official A4 Admission Pass with scannable gate QR code is generated instantly and emailed to you. You can also download it anytime from [My Bookings](/bookings)!`;
+    return `### 🎟️ How to Book Tickets on EventHub\n\n1. **Browse Events:** Visit our [Events Catalog](/events) and select any event.\n2. **Select Quantity:** Choose between 1 to 10 tickets.\n3. **Price Breakdown:** View transparent pricing including base ticket price, processing fee, and taxes.\n4. **Secure Payment:** Direct in-built **Razorpay Gateway** supporting UPI (Google Pay, PhonePe, Paytm), Debit/Credit Cards, Net Banking, and Wallets.\n5. **Instant PDF Ticket:** Your official A4 Admission Pass with scannable gate QR code is generated instantly and emailed to you. You can also download it anytime from [My Bookings](/bookings)!`;
   }
 
   if (lower.includes('payment') || lower.includes('upi') || lower.includes('razorpay') || lower.includes('gpay') || lower.includes('phonepe') || lower.includes('paytm') || lower.includes('price')) {
-    return `### 💳 EventHub Payment & UPI System\n\n- **Pull-Type Auto-Scan QR Code:** When you scan the QR code with any UPI app, the exact booking price is automatically pulled and locked. Payer cannot edit, increase, or decrease the amount.\n- **Direct Mobile UPI Apps:** 1-tap direct buttons for **Google Pay (GPay)**, **PhonePe**, **Paytm**, and **BHIM UPI**.\n- **Receiver UPI ID:** \`gondaliyakishan839@okaxis\` (Verified Merchant: **Krishna Gondaliya**).\n- **Razorpay Direct Gateway:** Supports Credit/Debit Cards (Visa, Mastercard, RuPay), Net Banking (SBI, HDFC, ICICI, Axis, and all major Indian banks), and Wallets.\n- **Security:** 256-bit SSL encryption with direct bank-to-bank verified settlements.`;
+    return `### 💳 EventHub Razorpay Payment System\n\n- **Direct In-Built Checkout:** One-click Razorpay popup modal directly on the event page.\n- **Supported Methods:** All UPI apps (GPay, PhonePe, Paytm, BHIM), Cards (Visa, Mastercard, RuPay), Net Banking (all Indian banks), and Wallets.\n- **Transparent Pricing:** Clear itemized breakdown of base price, processing fee, and GST.\n- **Instant Verification:** Cryptographic HMAC signature check ensuring immediate ticket issuance and booking confirmation.\n- **Security:** 256-bit SSL encryption with official Razorpay enterprise security.`;
   }
 
   if (lower.includes('remind') || lower.includes('reminder') || lower.includes('24 hour') || lower.includes('notification') || lower.includes('previous day')) {
@@ -167,10 +163,10 @@ async function fallbackChatResponse(message, role) {
   }
 
   if (lower.includes('contact') || lower.includes('support') || lower.includes('help') || lower.includes('email') || lower.includes('phone')) {
-    return `### 📞 EventHub Customer Help & Support\n\n- **In-App Live Support:** You can ask any question right here in this Help & Support desk 24/7!\n- **Contact Us Page:** Submit inquiries directly on our [Contact Us Page](/contact). Our admin team receives them in real-time.\n- **Official Support Email:** **gondaliyakishan839@gmail.com**\n- **Verified Payee / Merchant:** **Krishna Gondaliya** (\`gondaliyakishan839@okaxis\`).`;
+    return `### 📞 EventHub Customer Help & Support\n\n- **In-App Live Support:** You can ask any question right here in this Help & Support desk 24/7!\n- **Contact Us Page:** Submit inquiries directly on our [Contact Us Page](/contact). Our admin team receives them in real-time.\n- **Official Support Email:** **support@eventhub.com**\n- **Secure Checkout:** Official **Razorpay Gateway** for all online ticket transactions.`;
   }
 
-  return `Hello! 👋 Welcome to **EventHub Help & Support**.\n\nI can assist you with:\n- 🎟️ **Event Discovery & Bookings** (live events, pricing, locked fixed price, PDF ticket pass)\n- 💳 **Payments & UPI** (GPay, PhonePe, Paytm, BHIM to \`gondaliyakishan839@okaxis\`, Razorpay)\n- ⏰ **24-Hour Event Reminders** (automated 1-day prior alerts with venue directions)\n- 💸 **Refund & Cancellation Policy** (100% full refund >48h, 50% refund 24-48h)\n- 🎪 **Organizer Hosting & Event Creation** (approval flow, participant rosters)\n- 📜 **Platform Rules, Gate Entry & Terms of Service**\n\nHow can I help you today?`;
+  return `Hello! 👋 Welcome to **EventHub Help & Support**.\n\nI can assist you with:\n- 🎟️ **Event Discovery & Bookings** (live events, pricing, instant ticket reservation)\n- 💳 **Payments & Checkout** (UPI, GPay, PhonePe, Paytm, Cards, Netbanking via Razorpay)\n- ⏰ **24-Hour Event Reminders** (automated 1-day prior alerts with venue directions)\n- 💸 **Refund & Cancellation Policy** (100% full refund >48h, 50% refund 24-48h)\n- 🎪 **Organizer Hosting & Event Creation** (approval flow, participant rosters)\n- 📜 **Platform Rules, Gate Entry & Terms of Service**\n\nHow can I help you today?`;
 }
 
 function withTimeout(promise, ms = 12000) {

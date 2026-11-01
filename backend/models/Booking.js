@@ -12,8 +12,10 @@ const bookingSchema = new mongoose.Schema({
   razorpaySignature: { type: String, default: '' },
   paymentMethod:     { type: String, default: 'online' },
   paymentDetails:    { type: Object, default: {} },
-  paymentStatus:     { type: String, enum: ['pending', 'paid', 'free', 'failed'], default: 'paid' },
+  paymentStatus:     { type: String, enum: ['pending', 'paid', 'free', 'failed', 'refunded'], default: 'paid' },
   status:            { type: String, enum: ['confirmed', 'cancelled'], default: 'confirmed' },
+  refundId:          { type: String, default: '' },
+  refundAmount:      { type: Number, default: 0 },
   reminderSent:      { type: Boolean, default: false },
   cancelledAt:       { type: Date }
 }, { timestamps: true });
