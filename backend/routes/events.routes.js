@@ -4,12 +4,16 @@ const Event   = require('../models/Event');
 const Participant = require('../models/Participant');
 const { protect, adminOnly } = require('../middleware/auth');
 
-// Helper: auto-complete past events on every request
-const syncEventStatus = async () => {
-  await Event.updateMany(
+// Helper: auto-complete past events periodically in background (non-blocking)
+let lastSyncTime = 0;
+const syncEventStatus = () => {
+  const now = Date.now();
+  if (now - lastSyncTime < 5 * 60 * 1000) return;
+  lastSyncTime = now;
+  Event.updateMany(
     { date: { $lt: new Date() }, status: 'active' },
     { $set: { status: 'completed' } }
-  );
+  ).catch(err => console.error('[SYNC EVENT ERROR]', err.message));
 };
 
 // GET /api/events/my/created — organizer's own events
@@ -25,7 +29,7 @@ router.get('/my/created', protect, async (req, res) => {
 // GET /api/events — public (only active/approved events by default)
 router.get('/', async (req, res) => {
   try {
-    await syncEventStatus(); // instant check on every list fetch
+    syncEventStatus(); // non-blocking background sync
     const {
       category,
       status,
@@ -101,13 +105,16 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    const skip  = (page - 1) * limit;
-    const total = await Event.countDocuments(filter);
-    const events = await Event.find(filter)
-      .populate('organizer', 'name email avatar')
-      .sort({ date: 1 })
-      .skip(skip)
-      .limit(Number(limit));
+    const skip = (page - 1) * limit;
+    const [total, events] = await Promise.all([
+      Event.countDocuments(filter),
+      Event.find(filter)
+        .populate('organizer', 'name email avatar')
+        .sort({ date: 1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .lean()
+    ]);
 
     res.json({ success: true, total, page: Number(page), events });
   } catch (err) {

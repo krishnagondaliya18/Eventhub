@@ -25,4 +25,9 @@ const eventSchema = new mongoose.Schema({
   revenue: { type: Number, default: 0 },
 }, { timestamps: true });
 
+// High-performance compound indexes for fast catalogue querying and filtering
+eventSchema.index({ status: 1, date: 1 });
+eventSchema.index({ category: 1, status: 1 });
+eventSchema.index({ organizer: 1 });
+
 module.exports = mongoose.model('Event', eventSchema);
