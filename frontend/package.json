@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node ./scripts/sync-dist.cjs",
     "preview": "vite preview",
-    "start": "vite"
+    "start": "vite",
+    "ng": "vite build && node ./scripts/sync-dist.cjs",
+    "postinstall": "node ./scripts/vercel-build-shim.cjs"
   },
   "dependencies": {
     "axios": "^1.7.9",

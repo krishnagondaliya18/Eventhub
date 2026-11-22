@@ -1,4 +1,8 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "vite build && node ./scripts/sync-dist.cjs",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/:path*",
