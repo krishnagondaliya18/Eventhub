@@ -6,14 +6,18 @@ const { protect, adminOnly } = require('../middleware/auth');
 
 // Helper: auto-complete past events periodically in background (non-blocking)
 let lastSyncTime = 0;
-const syncEventStatus = () => {
+const syncEventStatus = async (force = false) => {
   const now = Date.now();
-  if (now - lastSyncTime < 5 * 60 * 1000) return;
+  if (!force && (now - lastSyncTime < 5 * 60 * 1000)) return;
   lastSyncTime = now;
-  Event.updateMany(
-    { date: { $lt: new Date() }, status: 'active' },
-    { $set: { status: 'completed' } }
-  ).catch(err => console.error('[SYNC EVENT ERROR]', err.message));
+  try {
+    await Event.updateMany(
+      { date: { $lt: new Date() }, status: 'active' },
+      { $set: { status: 'completed' } }
+    );
+  } catch (err) {
+    console.error('[SYNC EVENT ERROR]', err.message);
+  }
 };
 
 // GET /api/events/my/created — organizer's own events
@@ -154,7 +158,7 @@ router.get('/suggestions', async (req, res) => {
 // GET /api/events/:id
 router.get('/:id', async (req, res) => {
   try {
-    await syncEventStatus(); // instant check on single event fetch
+    await syncEventStatus(true); // instant check on single event fetch
     const event = await Event.findById(req.params.id)
       .populate('organizer', 'name email avatar');
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });

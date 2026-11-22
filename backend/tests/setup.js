@@ -17,6 +17,10 @@ process.env.JWT_EXPIRE = '1d';
 process.env.RAZORPAY_KEY_ID = 'rzp_test_MOCK_KEY_ID';
 process.env.RAZORPAY_KEY_SECRET = 'mock_razorpay_secret_123456789';
 
+if (typeof jest !== 'undefined') {
+  jest.setTimeout(120000);
+}
+
 const TEST_DB_URI = process.env.MONGODB_TEST_URI ||
   'mongodb+srv://gondaliyakishan839_db_user:TEST1234@cluster0.meceppg.mongodb.net/eventhub_automated_tests?appName=Cluster0';
 

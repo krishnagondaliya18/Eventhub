@@ -4,7 +4,11 @@ const jwt     = require('jsonwebtoken');
 const User    = require('../models/User');
 const { protect } = require('../middleware/auth');
 
-const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
+const signToken = (id) => jwt.sign(
+  { id },
+  process.env.JWT_SECRET || 'eventhub_super_secret_key_2024',
+  { expiresIn: process.env.JWT_EXPIRE || '7d' }
+);
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
